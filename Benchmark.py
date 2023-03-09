@@ -15,6 +15,7 @@ Columns = [
 
 dimensions = 2
 sampleWindowSize = 150 # Number of samples in one Window for Training / testing
+useTimestapmsAsInput = True
 
 #################################
 # Data Loading                  #
@@ -41,6 +42,7 @@ allData = loadAirQualityData()
 
 from random import random, seed
 import numpy as np
+import torch
 
 seed(1)
 
@@ -60,14 +62,21 @@ def SampleDataSet(beginDate,endDate,numberOfSamples):
     for i in range(0,numberOfSamples):
         
         position =int(random() * float(len(sampleArea.index)-sampleWindowSize))
-        DataSet[i] = sampleArea.iloc[np.arange(position,position+sampleWindowSize)]
-        #Conversion into pandas tensor is missing
+        
+        #sampling
+        sequence = sampleArea.iloc[np.arange(position,position+sampleWindowSize)]
+        #conversion to tensor
+        sequence = sequence.astype(np.float32).to_numpy().tolist()
+        DataSet[i] = torch.tensor(sequence)
     
     return DataSet
 
-#ts = SampleDataSet(datetime(2004,4,1),datetime(2005,1,1),10)
+ts = SampleDataSet(datetime(2004,4,1),datetime(2005,1,1),10)
 
-#print(ts)
-#print(ts[0])
-#ts[0].plot(x="Date_Time",y=relevantColumns)
-#plt.show()
+print(ts)
+print(ts[0])
+ts[0].plot(x="Date_Time",y=relevantColumns)
+plt.show()
+
+
+
