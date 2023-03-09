@@ -13,7 +13,7 @@ Columns = [
         "PT08.S5(O3)",
         ]
 
-dimensions = 1
+dimensions = 2
 sampleWindowSize = 150 # Number of samples in one Window for Training / testing
 
 #################################
@@ -40,6 +40,7 @@ allData = loadAirQualityData()
 #################################
 
 from random import random, seed
+import numpy as np
 
 seed(1)
 
@@ -58,12 +59,15 @@ def SampleDataSet(beginDate,endDate,numberOfSamples):
     #Bogo (Random) Sampling...
     for i in range(0,numberOfSamples):
         
-        position =int(random() * float(len(sampleArea.index())-sampleWindowSize))
-        DataSet[i] = df.iloc[[position:position+sampleWindowSize]]
+        position =int(random() * float(len(sampleArea.index)-sampleWindowSize))
+        DataSet[i] = sampleArea.iloc[np.arange(position,position+sampleWindowSize)]
         #Conversion into pandas tensor is missing
     
     return DataSet
 
+#ts = SampleDataSet(datetime(2004,4,1),datetime(2005,1,1),10)
 
-                
-
+#print(ts)
+#print(ts[0])
+#ts[0].plot(x="Date_Time",y=relevantColumns)
+#plt.show()
