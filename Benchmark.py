@@ -28,6 +28,7 @@ relevantColumns = Columns[0:dimensions]
 def loadAirQualityData():
     dataset = pd.read_excel(PathToAirqualityData,parse_dates=[["Date","Time"]])
     dataset = dataset[["Date_Time"]+relevantColumns]
+    dataset[relevantColumns] = (dataset[relevantColumns]-dataset[relevantColumns].mean())/dataset[relevantColumns].std()
     return dataset
 
 allData = loadAirQualityData()
@@ -72,6 +73,7 @@ def SampleDataSet(beginDate,endDate,numberOfSamples):
         sequence = sampleArea.iloc[np.arange(position,position+sampleWindowSize)]
         #conversion to tensor
         DataSet[i] = torch.tensor(sequence.values.astype(np.float32))
+        #DataSet[i] = torch.transpose(DataSet[i],0,1)
     
     return DataSet
 
@@ -124,8 +126,10 @@ class Encoder(nn.Module):
                 )
 
     def forward(self,x):
+        print(x)
         x,(_, _) = self.outerRNN(x)#?? Wieso gebe ich hier x weiter und nicht den inneren zustand?
-        x, (hidden_n,_) = self.innerRNN(x)#??
+        print(x)
+        x, (hidden_n,_) = self.innerRNN(x)
 
         return hidden_n
 
@@ -176,7 +180,46 @@ class RecurrentAutoencoder(nn.Module):
         x = self.decoder(x)
         return x
 
-model = RecurrentAutoencoder(sampleWindowSize, dimensions)
+class BinCoder(nn.Module):#Autoencoder form Bin's drift detection script.
+    
+    def __init__(self,input_dim,hidden_dim,num_layers=4):
+
+        super().__init__()
+        self.input_dim,self.hidden_dim = input_dim,hidden_dim
+
+        self.encoder = nn.LSTM(
+                    input_size = self.input_dim,
+                    hidden_size = self.hidden_dim,
+                    num_layers = num_layers,
+                    batch_first = True
+                )
+
+        self.decoder = nn.LSTM(
+                    input_size = self.input_dim,
+                    hidden_size = self.hidden_dim,
+                    num_layers = num_layers,
+                    batch_first = True
+                )
+        
+        self.encoder = self.encoder.to(device)
+        self.decoder = self.decoder.to(device)
+
+        self.output = nn.Linear(self.hidden_dim, self.input_dim)
+
+    def forward(self,x):
+        
+        encoder_out,encoder_hidden = self.encoder(x)
+
+        decoder_input = torch.zeros_like(x)
+        
+        decoder_output,decoder_hidden = self.decoder(decoder_input,encoder_hidden)
+        reconstruction = self.output(decoder_output)
+        reconstruction = torch.flip(reconstruction,[1])
+        return reconstruction
+
+
+#model = RecurrentAutoencoder(sampleWindowSize, dimensions)
+model = BinCoder(dimensions,60,4)
 model = model.to(device)
 
 
@@ -250,6 +293,9 @@ plt.close()
 
 seq_true = validationSet[1].to(device)
 seq_pred = model(seq_true)
+
+print(seq_pred)
+print(validationSet[1])
 
 plt.plot(validationSet[1])
 plt.plot(seq_pred.to("cpu").detach().numpy())
