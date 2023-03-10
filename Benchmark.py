@@ -117,19 +117,17 @@ class Encoder(nn.Module):
                 )
 
         self.innerRNN = nn.LSTM(
-                    input_size = self.outer_dim, #warum? müsste es nicht auch input_dim sein?
+                    input_size = self.input_dim, #warum? müsste es nicht auch input_dim sein?
                     hidden_size = self.inner_dim,
                     num_layers =  1,
                     batch_first = True
                 )
 
     def forward(self,x):
-        x= x.reshape((1,self.seq_len,self.input_dim))
-
         x,(_, _) = self.outerRNN(x)#?? Wieso gebe ich hier x weiter und nicht den inneren zustand?
         x, (hidden_n,_) = self.innerRNN(x)#??
 
-        return hidden_n.reshape((self.input_dim,self.inner_dim))
+        return hidden_n
 
 class Decoder(nn.Module):
 
@@ -141,28 +139,26 @@ class Decoder(nn.Module):
         self.inner_dim, self.outer_dim = latent_dim, 2*latent_dim
 
         self.innerRNN = nn.LSTM(
-                input_size=latent_dim,
+                input_size=input_dim,
                 hidden_size = latent_dim,
                 num_layers = 1,
                 batch_first = True
                 )
 
         self.outerRNN = nn.LSTM(
-                input_size = latent_dim,
+                input_size = input_dim,
                 hidden_size = self.outer_dim,
                 num_layers = 1,
                 batch_first = True
                 )
 
-        self.output_layer = nn.Linear(self.outer_dim, input_dim)
+        self.output_layer = nn.Linear(seq_len, input_dim)
 
-    def forward(self,x):
-        x = x.repeat(self.seq_len,self.input_dim)
-        x = x.reshape((self.input_dim, self.seq_len, self.inner_dim))
+    def forward(self,hidden_n):
+        x = torch.zeros([self.input_dim,self.seq_len])
 
-        x, (hidden_n,cell_n) = self.innerRNN(x)
+        x, (hidden_n,cell_n) = self.innerRNN(x,(hidden_n,_))
         x, (hidden_n,cell_n) = self.outerRNN(x)
-        x = x.reshape(self.seq_len, self.outer_dim)#??
 
         return self.output_layer(x)
 
