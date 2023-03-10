@@ -13,10 +13,10 @@ Columns = [
         "PT08.S5(O3)",
         ]
 
-dimensions = 2
+dimensions = 1
 sampleWindowSize = 150 # Number of samples in one Window for Training / testing
 useTimestapmsAsInput = False
-n_epochs = 100 #for Training
+n_epochs = 300 #for Training
 
 #################################
 # Data Loading                  #
@@ -71,7 +71,7 @@ def SampleDataSet(beginDate,endDate,numberOfSamples):
         #sampling
         sequence = sampleArea.iloc[np.arange(position,position+sampleWindowSize)]
         #conversion to tensor
-        DataSet[i] = torch.tensor(sequence.values)
+        DataSet[i] = torch.tensor(sequence.values.astype(np.float32))
     
     return DataSet
 
@@ -126,7 +126,7 @@ class Encoder(nn.Module):
     def forward(self,x):
         x= x.reshape((1,self.seq_len,self.input_dim))
 
-        x,(_,_) = self.outerRNN(x)#?? Wieso gebe ich hier x weiter und nicht den inneren zustand?
+        x,(_, _) = self.outerRNN(x)#?? Wieso gebe ich hier x weiter und nicht den inneren zustand?
         x, (hidden_n,_) = self.innerRNN(x)#??
 
         return hidden_n.reshape((self.input_dim,self.inner_dim))
@@ -156,9 +156,9 @@ class Decoder(nn.Module):
 
         self.output_layer = nn.Linear(self.outer_dim, input_dim)
 
-    def forwards(self,x):
-        x.repeat(self.seq_len,self.input_dim)
-        x.reshape((self.input_dim, self.seq_len, self.input_dim))
+    def forward(self,x):
+        x = x.repeat(self.seq_len,self.input_dim)
+        x = x.reshape((self.input_dim, self.seq_len, self.inner_dim))
 
         x, (hidden_n,cell_n) = self.innerRNN(x)
         x, (hidden_n,cell_n) = self.outerRNN(x)
@@ -192,9 +192,9 @@ from torch import optim
 import copy
 
 
-optimizer = torch.optim.Adam(model.paramters(),lr = 1e-3)
+optimizer = torch.optim.Adam(model.parameters(),lr = 1e-3)
 criterion = nn.L1Loss(reduction = "sum").to(device)
-histroy = dict(train=[],val=[])
+history = dict(train=[],val=[])
 
 best_model_wts = copy.deepcopy(model.state_dict())
 best_loss = 1e9
@@ -202,7 +202,7 @@ best_loss = 1e9
 for epoch in range(1,n_epochs +1):
     model = model.train()
 
-    train_losses = []
+    train_loss = []
     for seq_true in trainingSet:
 
         optimizer.zero_grad()
@@ -215,20 +215,20 @@ for epoch in range(1,n_epochs +1):
         loss.backward()
         optimizer.step()
 
-        train_losses.append(loss.item())
+        train_loss.append(loss.item())
 
-    val_losses = []
+    val_loss = []
 
     model = model.eval()
     
     with torch.no_grad():
-        for seq_true in val_dataset:
+        for seq_true in validationSet:
 
             seq_true = seq_true.to(device)
             seq_pred = model(seq_true)
 
             loss = criterion(seq_pred,seq_true)
-            val_losses.append(loss.item())
+            val_loss.append(loss.item())
 
     train_loss = np.mean(train_loss)
     val_loss = np.mean(val_loss)
@@ -243,4 +243,18 @@ for epoch in range(1,n_epochs +1):
     print(f"Epoch {epoch}: train loss {train_loss} val loss {val_loss}.")
 
 model.load_state_dict(best_model_wts)
-    
+
+
+import matplotlib.pyplot as plt
+
+plt.plot(history["train"])
+plt.plot(history["val"])
+plt.show()
+plt.close()
+
+seq_true = validationSet[1].to(device)
+seq_pred = model(seq_true)
+
+plt.plot(validationSet[1])
+plt.plot(seq_pred.to("cpu").detach().numpy())
+plt.show()
