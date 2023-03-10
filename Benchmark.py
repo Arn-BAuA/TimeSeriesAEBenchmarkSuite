@@ -219,7 +219,7 @@ class BinCoder(nn.Module):#Autoencoder form Bin's drift detection script.
 
 
 #model = RecurrentAutoencoder(sampleWindowSize, dimensions)
-model = BinCoder(dimensions,60,4)
+model = BinCoder(dimensions,120,4)
 model = model.to(device)
 
 
