@@ -16,7 +16,7 @@ Columns = [
 dimensions = 1
 sampleWindowSize = 150 # Number of samples in one Window for Training / testing
 useTimestapmsAsInput = False
-n_epochs = 300 #for Training
+n_epochs = 70 #for Training
 
 #################################
 # Data Loading                  #
@@ -77,8 +77,8 @@ def SampleDataSet(beginDate,endDate,numberOfSamples):
     
     return DataSet
 
-trainingSet = SampleDataSet(datetime(2004,4,1),datetime(2005,1,1),100)
-validationSet = SampleDataSet(datetime(2005,1,1),datetime(2005,3,1),50)
+trainingSet = SampleDataSet(datetime(2004,4,1),datetime(2005,1,1),1000)
+validationSet = SampleDataSet(datetime(2005,1,1),datetime(2005,3,1),100)
 testSet = SampleDataSet(datetime(2005,3,1),datetime(2005,4,1),30)
 
 #print(trainingSet[0])
@@ -217,9 +217,37 @@ class BinCoder(nn.Module):#Autoencoder form Bin's drift detection script.
         reconstruction = torch.flip(reconstruction,[1])
         return reconstruction
 
+class ArnCoder(nn.Module): #Plain Feed Forward Encoder....
+    
+    def __init__(self,windowSize,dimensions):
+        
+        super().__init__()
+
+        self.model = nn.Sequential(
+                    torch.nn.Linear(dimensions*windowSize , 100),
+                    torch.nn.ReLU(),
+                    torch.nn.Linear(100 , 50),
+                    torch.nn.ReLU(),
+                    torch.nn.Linear(50 , 20),
+                    torch.nn.ReLU(),
+                    torch.nn.Linear(20 , 50),
+                    torch.nn.ReLU(),
+                    torch.nn.Linear(50 , 100),
+                    torch.nn.ReLU(),    
+                    torch.nn.Linear(100, dimensions*windowSize)
+                )
+
+        self.model.to(device)
+
+    def forward(self,x):
+        x = torch.transpose(x,0,1)
+        x = self.model(x)
+        return torch.transpose(x,0,1)
+
 
 #model = RecurrentAutoencoder(sampleWindowSize, dimensions)
-model = BinCoder(dimensions,120,4)
+#model = BinCoder(dimensions,130,3)
+model = ArnCoder(sampleWindowSize,dimensions)
 model = model.to(device)
 
 
@@ -291,12 +319,15 @@ plt.plot(history["val"])
 plt.show()
 plt.close()
 
-seq_true = validationSet[1].to(device)
-seq_pred = model(seq_true)
+seq_true1 = validationSet[0].to(device)
+seq_pred1 = model(seq_true1)
+seq_true2 = validationSet[1].to(device)
+seq_pred2 = model(seq_true2)
 
-print(seq_pred)
-print(validationSet[1])
-
+plt.plot(validationSet[0])
+plt.plot(seq_pred1.to("cpu").detach().numpy())
+plt.show()
+plt.close()
 plt.plot(validationSet[1])
-plt.plot(seq_pred.to("cpu").detach().numpy())
+plt.plot(seq_pred2.to("cpu").detach().numpy())
 plt.show()
