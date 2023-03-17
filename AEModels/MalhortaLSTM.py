@@ -1,7 +1,7 @@
 
 from torch import nn
 
-class LSMTAutoencoder(nn.Module):#Autoencoder form Bin's drift detection script. (Malhorta et al)
+class Model(nn.Module):#Autoencoder form Bin's drift detection script. (Malhorta et al)
     
     def __init__(self,device,**HyperParameters):
         

@@ -1,7 +1,7 @@
 
 from torch import nn
 
-class FeedforwardEncoder(nn.Module): #Plain Feed Forward Encoder....
+class Model(nn.Module): #Plain Feed Forward Encoder....
     
     def __init__(self,device,**HyperParameters):
         
