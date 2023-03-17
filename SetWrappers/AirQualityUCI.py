@@ -22,7 +22,7 @@ Columns = [
         "PT08.S5(O3)",
         ]
 
-def loadData(savePath,**hyperParameters):
+def loadData(dimensions,**hyperParameters):
     
     defaultHyperParameters = {
             "Dimensions" = 1,
