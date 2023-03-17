@@ -1,21 +1,23 @@
 ##
 # This training routine is "borrowed" from a tutorial on couriously.com
-
+import torch
+import numpy as np
+from torch import nn
 from torch import optim
 import copy
 
 
 class Trainer():
 
-    def __init__(self,model,**hyperParameters):
+    def __init__(self,model,device,**hyperParameters):
 
-        defaultHyperParameters = 
-        {
+        defaultHyperParameters = {
 
         }
 
         HPs = {**defaultHyperParameters,**hyperParameters}
-
+        
+        self.device = device
         self.optimizer = torch.optim.Adam(model.parameters(),lr = 1e-3)
         self.criterion = nn.L1Loss(reduction = "sum").to(device)
 
@@ -23,14 +25,14 @@ class Trainer():
         best_model_wts = copy.deepcopy(model.state_dict())
         self.best_loss = 1e9
 
-    def doEpoch(self,model,trainingSet,validationSet,history,device):
+    def doEpoch(self,model,trainingSet,validationSet,history):
     
         train_loss = []
         for seq_true in trainingSet:
 
             self.optimizer.zero_grad()
         
-            seq_true = seq_true.to(device) # I think we can do this faster if we transfer the dataset to the gpu first and than do the training
+            seq_true = seq_true.to(self.device) # I think we can do this faster if we transfer the dataset to the gpu first and than do the training
             seq_pred = model(seq_true)
     
             loss = self.criterion(seq_pred, seq_true)
@@ -47,7 +49,7 @@ class Trainer():
         with torch.no_grad():
             for seq_true in validationSet:
 
-                seq_true = seq_true.to(device)
+                seq_true = seq_true.to(self.device)
                 seq_pred = model(seq_true)
 
                 loss = self.criterion(seq_pred,seq_true)
@@ -59,8 +61,8 @@ class Trainer():
         history["train"].append(train_loss)
         history["val"].append(val_loss)
 
-        if val_loss < best_loss:
-            self.best_loss = self.val_loss
+        if val_loss < self.best_loss:
+            self.best_loss = val_loss
             self.best_model_wts = copy.deepcopy(model.state_dict())
 
         return model,history

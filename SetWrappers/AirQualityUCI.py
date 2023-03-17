@@ -25,18 +25,17 @@ Columns = [
 def loadData(dimensions,**hyperParameters):
     
     defaultHyperParameters = {
-            "Dimensions" = 1,
-            "sampleWindowSize" = 150,
-            "includeTimeStamps" =False,
-            "TrainingSetSize" = 1000,
-            "BeginDateTrainingData" = datetime(2004,4,1),
-            "EndDateTrainingData" = datetime(2005,1,1),
-            "ValidationSetSize" = 100,
-            "BeginDateValidationData" = datetime(2005,1,1),
-            "EndDateValidationData" = datetime(2005,3,1),
-            "TestSetSize" = 30,
-            "BeginDateTestData" = datetime(2005,3,1),
-            "EndDateTestData" = datetime(2005,4,1),
+            "sampleWindowSize" : 150,
+            "includeTimeStamps" :False,
+            "TrainingSetSize" : 1000,
+            "BeginDateTrainingData" : datetime(2004,4,1),
+            "EndDateTrainingData" : datetime(2005,1,1),
+            "ValidationSetSize" : 100,
+            "BeginDateValidationData" : datetime(2005,1,1),
+            "EndDateValidationData" : datetime(2005,3,1),
+            "TestSetSize" : 30,
+            "BeginDateTestData" : datetime(2005,3,1),
+            "EndDateTestData" : datetime(2005,4,1),
             }
     
     HPs = {**defaultHyperParameters,**hyperParameters}
@@ -46,7 +45,7 @@ def loadData(dimensions,**hyperParameters):
     #################################
 
 
-    relevantColumns = Columns[0:HPs["Dimensions"]]
+    relevantColumns = Columns[0:dimensions]
 
     #loading and preparing air quality data
     allData = pd.read_excel(PathToAirqualityData,parse_dates=[["Date","Time"]])

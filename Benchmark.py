@@ -19,7 +19,7 @@ def createResultDict(path):
 def getDevice():
     return device
 
-def benchmark(loadData,setWrapperHP,model,modelHP,trainerClass,trainerHP,n_Epochs,pathToSave):
+def benchmark(loadData,setWrapperHP,model,modelHP,trainerClass,trainerHP,n_Epochs,dimensions,pathToSave):
     
     #report the environemnt ()
 
@@ -32,13 +32,13 @@ def benchmark(loadData,setWrapperHP,model,modelHP,trainerClass,trainerHP,n_Epoch
         
     model.to(device)
         
-    trainer = trainerClass(model,trainerHP) 
+    trainer = trainerClass(model,device,**trainerHP) 
         
     history = {"train":[],"val":[]}
 
     for epoch in range(0,n_Epochs):
         model,history = trainer.doEpoch(model,trainingSet,validationSet,history)
-        print(f"Epoch: {epoch} \t Train.Err.: {history['train'][-1] \t Val.Err.: {history['val'][-1]}}")
+        print(f"Epoch: {epoch} , Train.Err.: {history['train'][-1]} , Val.Err.: {history['val'][-1]}")
 
         #chech Performance goals,
 

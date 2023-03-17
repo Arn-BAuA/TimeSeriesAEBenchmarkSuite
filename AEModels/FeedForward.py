@@ -1,12 +1,11 @@
-
+import torch
 from torch import nn
 
 class Model(nn.Module): #Plain Feed Forward Encoder....
     
     def __init__(self,Dimensions,device,**HyperParameters):
         
-        defaultHyperParameters = 
-            {
+        defaultHyperParameters = {
                 "InputSize":150,
             }
 
