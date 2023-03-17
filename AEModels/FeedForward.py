@@ -3,12 +3,11 @@ from torch import nn
 
 class Model(nn.Module): #Plain Feed Forward Encoder....
     
-    def __init__(self,device,**HyperParameters):
+    def __init__(self,Dimensions,device,**HyperParameters):
         
         defaultHyperParameters = 
             {
-                "Dimensions":1,
-                "InputSize":125,
+                "InputSize":150,
             }
 
         HPs = {**defaultHyperParameters, **HyperParameters}
@@ -16,7 +15,7 @@ class Model(nn.Module): #Plain Feed Forward Encoder....
         super().__init__()
 
         self.model = nn.Sequential(
-                    torch.nn.Linear(HPs["Dimensions"]*HPs["InputSize"] , 100),
+                    torch.nn.Linear(Dimensions*HPs["InputSize"] , 100),
                     torch.nn.ReLU(),
                     torch.nn.Linear(100 , 50),
                     torch.nn.ReLU(),
@@ -26,7 +25,7 @@ class Model(nn.Module): #Plain Feed Forward Encoder....
                     torch.nn.ReLU(),
                     torch.nn.Linear(50 , 100),
                     torch.nn.ReLU(),    
-                    torch.nn.Linear(100,HPs["Dimensions"]*HPs["InputSize"])
+                    torch.nn.Linear(100,Dimensions*HPs["InputSize"])
                 )
 
         self.model.to(device)
