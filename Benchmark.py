@@ -30,7 +30,7 @@ else:
     if torch.backends.mps.is_available():
         device = "mps"
 
-class BinCoder(nn.Module):#Autoencoder form Bin's drift detection script. (Malhorta et al)
+class LSMTAutoencoder(nn.Module):#Autoencoder form Bin's drift detection script. (Malhorta et al)
     
     def __init__(self,input_dim,hidden_dim,num_layers=4):
 
