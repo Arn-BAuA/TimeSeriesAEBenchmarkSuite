@@ -5,6 +5,7 @@ from random import random, seed
 import numpy as np
 import torch
 
+from BlockAndDatablock import DataBlock
 
 PathToAirqualityData = "data/AirQualityUCI.xlsx"
 
@@ -91,4 +92,6 @@ def loadData(dimensions,**hyperParameters):
     validationSet = SampleDataSet(HPs["BeginDateValidationData"],HPs["EndDateValidationData"],HPs["ValidationSetSize"])
     testSet = SampleDataSet(HPs["BeginDateTestData"],HPs["EndDateTestData"],HPs["TestSetSize"])
 
-    return trainingSet,validationSet,testSet
+    return DataBlock(trainingSet,HPs),
+           DataBlock(validationSet,HPs),
+           DataBlock(testSet,HPs)

@@ -6,18 +6,14 @@ from torch import nn
 from torch import optim
 import copy
 
+import BlockAndDatablock.block
 
-class Trainer():
+class Trainer(block):
 
     def __init__(self,model,device,**hyperParameters):
 
-        defaultHyperParameters = {
+        block.__init__(device,hyperParameters)
 
-        }
-
-        HPs = {**defaultHyperParameters,**hyperParameters}
-        
-        self.device = device
         self.optimizer = torch.optim.Adam(model.parameters(),lr = 1e-3)
         self.criterion = nn.L1Loss(reduction = "sum").to(device)
 
