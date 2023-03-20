@@ -7,9 +7,8 @@ pathForResults = "Results/"
 def createResultDict(path):
     pass
 
-def initGlobalEnvironment(DataSetDimensions):
-    global Dimensions = DataSetDimensions
-    global device = "cpu"
+def initializeDevice():
+    device = "cpu"
 
     if torch.cuda.is_available():
         device = "cuda"
@@ -17,7 +16,9 @@ def initGlobalEnvironment(DataSetDimensions):
         if torch.backends.mps.is_available():
             device = "mps"
 
-def benchmark(trainingSet,validationSet,testSet,model,trainerClass,n_epochs,pathToSave):
+    return device
+
+def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSave,device):
     
     #report the environemnt ()
 
@@ -26,13 +27,11 @@ def benchmark(trainingSet,validationSet,testSet,model,trainerClass,n_epochs,path
     #write trainer HP
     #Calculate and save set characteristics here
         
-    model.to(device)
-        
-    trainer = trainerClass(model,device,**trainerHP) 
+    model.to(device)    
         
     history = {"train":[],"val":[]}
 
-    for epoch in range(0,n_Epochs):
+    for epoch in range(0,n_epochs):
         model,history = trainer.doEpoch(model,trainingSet,validationSet,history)
         print(f"Epoch: {epoch} , Train.Err.: {history['train'][-1]} , Val.Err.: {history['val'][-1]}")
 

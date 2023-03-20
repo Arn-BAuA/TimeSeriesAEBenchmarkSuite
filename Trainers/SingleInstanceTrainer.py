@@ -6,14 +6,16 @@ from torch import nn
 from torch import optim
 import copy
 
-import BlockAndDatablock.block
+from BlockAndDatablock import block
 
 class Trainer(block):
 
-    def __init__(self,model,**hyperParameters):
+    def __init__(self,model,device,**hyperParameters):
 
-        block.__init__(device,hyperParameters)
-
+        block.__init__(self,**hyperParameters)
+        
+        self.device = device
+        
         self.optimizer = torch.optim.Adam(model.parameters(),lr = 1e-3)
         self.criterion = nn.L1Loss(reduction = "sum").to(device)
 
@@ -24,7 +26,7 @@ class Trainer(block):
     def doEpoch(self,model,trainingSet,validationSet,history):
     
         train_loss = []
-        for seq_true in trainingSet:
+        for seq_true in trainingSet.Data():
 
             self.optimizer.zero_grad()
         
@@ -43,7 +45,7 @@ class Trainer(block):
         model = model.eval()
     
         with torch.no_grad():
-            for seq_true in validationSet:
+            for seq_true in validationSet.Data():
 
                 seq_true = seq_true.to(self.device)
                 seq_pred = model(seq_true)

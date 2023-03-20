@@ -12,7 +12,7 @@
 # abstract class for trainer and model to handle the hyperparameters
 class block():
 
-    def __init__(**hyperParameters):
+    def __init__(self,**hyperParameters):
 
         defaultHyperParameters = self._getDefaultHPs()
 
@@ -26,7 +26,7 @@ class block():
     #__init__ of the children to get their default hp
     # in the constructor
     def _getDefaultHPs(self):
-        pass
+        return {}
 
     def hyperParamteres(self):
         return self.HP
@@ -37,13 +37,14 @@ class block():
 # these set itself are datablock classes.
 class DataBlock(block):
 
-    def __init__(Dataset,**hyperParameters):
-        block.__init__(hyperParameters)
+    def __init__(self,Dataset,Dimensions,**hyperParameters):
+        block.__init__(self,**hyperParameters)
         self.Dataset=Dataset
+        self.Dimesions = Dimensions
 
     def Data(self):
         return self.Dataset
 
-    #Default HPs of DataBlocks are defined in the setwrapper
-    def _getDefaultHPs(self):
-        return {}
+    def Dimension(self):
+        return self.Dimensions
+

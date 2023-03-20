@@ -92,6 +92,4 @@ def loadData(dimensions,**hyperParameters):
     validationSet = SampleDataSet(HPs["BeginDateValidationData"],HPs["EndDateValidationData"],HPs["ValidationSetSize"])
     testSet = SampleDataSet(HPs["BeginDateTestData"],HPs["EndDateTestData"],HPs["TestSetSize"])
 
-    return DataBlock(trainingSet,HPs),
-           DataBlock(validationSet,HPs),
-           DataBlock(testSet,HPs)
+    return DataBlock(trainingSet,dimensions,**HPs),DataBlock(validationSet,dimensions,**HPs),DataBlock(testSet,dimensions,**HPs)
