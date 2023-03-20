@@ -17,7 +17,7 @@ class block():
         defaultHyperParameters = self._getDefaultHPs()
 
         HPs = {**defaultHyperParameters,**hyperParameters}
-        self.HyperParameterDict = HPs
+        self.HP = HPs
 
 
 
@@ -29,7 +29,7 @@ class block():
         pass
 
     def hyperParamteres(self):
-        return self.HyperParameterDict
+        return self.HP
 
 
 #The dataset wrapper itself is not an object. It is a file containing a method 

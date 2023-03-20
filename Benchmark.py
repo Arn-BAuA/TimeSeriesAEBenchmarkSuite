@@ -4,30 +4,26 @@ import torch
 
 pathForResults = "Results/"
 
-
-device = "cpu"
-
-if torch.cuda.is_available():
-    device = "cuda"
-else: 
-    if torch.backends.mps.is_available():
-        device = "mps"
-
 def createResultDict(path):
     pass
 
-def getDevice():
-    return device
+def initGlobalEnvironment(DataSetDimensions):
+    global Dimensions = DataSetDimensions
+    global device = "cpu"
 
-def benchmark(loadData,setWrapperHP,model,modelHP,trainerClass,trainerHP,n_Epochs,dimensions,pathToSave):
+    if torch.cuda.is_available():
+        device = "cuda"
+    else: 
+        if torch.backends.mps.is_available():
+            device = "mps"
+
+def benchmark(trainingSet,validationSet,testSet,model,trainerClass,n_epochs,pathToSave):
     
     #report the environemnt ()
 
     #write set HP
     #write model HP
     #write trainer HP
-
-    trainingSet,validationSet,testSet = loadData(dimensions)
     #Calculate and save set characteristics here
         
     model.to(device)

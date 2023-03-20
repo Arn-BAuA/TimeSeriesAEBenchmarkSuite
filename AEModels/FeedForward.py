@@ -1,20 +1,19 @@
 import torch
 from torch import nn
+from BlockAndDatablock import block
 
-class Model(nn.Module): #Plain Feed Forward Encoder....
+class Model(block,nn.Module): #Plain Feed Forward Encoder....
     
-    def __init__(self,Dimensions,device,**HyperParameters):
+    def _getDefaultHPs(self):
+        return {"InputSize":150}
+    
+    def __init__(self,**HyperParameters):
         
-        defaultHyperParameters = {
-                "InputSize":150,
-            }
-
-        HPs = {**defaultHyperParameters, **HyperParameters}
-        
-        super().__init__()
+        block.__init__(HyperParameters) 
+        nn.Module.__init__()
 
         self.model = nn.Sequential(
-                    torch.nn.Linear(Dimensions*HPs["InputSize"] , 100),
+                    torch.nn.Linear(Dimensions*self.HP["InputSize"] , 100),
                     torch.nn.ReLU(),
                     torch.nn.Linear(100 , 50),
                     torch.nn.ReLU(),
@@ -24,7 +23,7 @@ class Model(nn.Module): #Plain Feed Forward Encoder....
                     torch.nn.ReLU(),
                     torch.nn.Linear(50 , 100),
                     torch.nn.ReLU(),    
-                    torch.nn.Linear(100,Dimensions*HPs["InputSize"])
+                    torch.nn.Linear(100,Dimensions*self.HP["InputSize"])
                 )
 
         self.model.to(device)
@@ -33,6 +32,5 @@ class Model(nn.Module): #Plain Feed Forward Encoder....
         x = torch.transpose(x,0,1)
         x = self.model(x)
         return torch.transpose(x,0,1)
-
 
 

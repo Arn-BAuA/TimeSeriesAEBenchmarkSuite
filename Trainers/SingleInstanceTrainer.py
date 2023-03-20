@@ -10,7 +10,7 @@ import BlockAndDatablock.block
 
 class Trainer(block):
 
-    def __init__(self,model,device,**hyperParameters):
+    def __init__(self,model,**hyperParameters):
 
         block.__init__(device,hyperParameters)
 

@@ -1,15 +1,14 @@
 #!/bin/python
 
 from AEModels.FeedForward import Model as ModelClass
-from SetWrappers.AirQualityUCI import loadData as dataSet
+from SetWrappers.AirQualityUCI import loadData
 from Trainers.SingleInstanceTrainer import Trainer
-from Benchmark import benchmark,getDevice
+from Benchmark import benchmark,initGlobalEnvironment
 
+initGlobalEnvironment(DataSetDimensions=1)
 
+model = ModelClass()
 
-dimension = 1 
-device = getDevice()
+trainingSet,validationSet,testSet = loadData()
 
-model = ModelClass(dimension,device)
-
-benchmark(dataSet,{},model,{},Trainer,{},150,1,pathToSave="")
+benchmark(trainingSet,validationSet,testSet,model,Trainer,n_epochs=150,pathToSave="")
