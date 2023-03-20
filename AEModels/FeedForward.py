@@ -2,8 +2,6 @@ import torch
 from torch import nn
 from BlockAndDatablock import block
 
-import globalArea
-
 class Model(block,nn.Module): #Plain Feed Forward Encoder....
     
     def _getDefaultHPs(self):
@@ -14,7 +12,7 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
         self.device = device
         self.Dimensions = Dimensions
 
-        block.__init__(self,**HyperParameters) 
+        block.__init__(self,"FeedForwardAE",**HyperParameters) 
         nn.Module.__init__(self)
 
         self.model = nn.Sequential(

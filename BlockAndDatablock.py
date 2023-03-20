@@ -11,14 +11,16 @@
 
 # abstract class for trainer and model to handle the hyperparameters
 class block():
-
-    def __init__(self,**hyperParameters):
-
+    
+    #name is the name of the specific dataset, model or trainer for the documentation later.
+    def __init__(self,name,**hyperParameters):
+        
         defaultHyperParameters = self._getDefaultHPs()
 
         HPs = {**defaultHyperParameters,**hyperParameters}
         self.HP = HPs
-
+        
+        self.name = name
 
 
 
@@ -28,7 +30,10 @@ class block():
     def _getDefaultHPs(self):
         return {}
 
-    def hyperParamteres(self):
+    def Name(self):
+        return self.name
+
+    def hyperParameters(self):
         return self.HP
 
 
@@ -37,10 +42,10 @@ class block():
 # these set itself are datablock classes.
 class DataBlock(block):
 
-    def __init__(self,Dataset,Dimensions,**hyperParameters):
-        block.__init__(self,**hyperParameters)
+    def __init__(self,name,Dataset,Dimensions,**hyperParameters):
+        block.__init__(self,name,**hyperParameters)
         self.Dataset=Dataset
-        self.Dimesions = Dimensions
+        self.Dimensions = Dimensions
 
     def Data(self):
         return self.Dataset

@@ -2,10 +2,6 @@
 
 import torch
 
-pathForResults = "Results/"
-
-def createResultDict(path):
-    pass
 
 def initializeDevice():
     device = "cpu"
@@ -18,15 +14,54 @@ def initializeDevice():
 
     return device
 
+pathForResults = "Results/"
+import os
+from datetime import datetime
+import json
+import pandas as pd
+
 def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSave,device):
     
-    #report the environemnt ()
+    now = str(datetime.now())
+    resultFolder = pathForResults+pathToSave+now
+    os.mkdir(resultFolder)
+    
+    resultFolder += "/"
+    ####################################
+    # Creating A Dictionary Containing all the rundefining Paramters
+    # and save it as json
+    ####################################
 
-    #write set HP
-    #write model HP
-    #write trainer HP
-    #Calculate and save set characteristics here
-        
+    runInformation = {}
+
+    generalInformation = {
+                "StreamDimension":trainingSet.Dimension(),
+                "Used Dataset":trainingSet.Name(),
+                "Used Trainer":trainer.Name(),
+                "Used Model":model.Name(),
+                "Number of epochs":n_epochs
+            }
+    
+    runInformation["General Information"] = generalInformation
+    
+    runInformation["SetWrapper HPs"] = trainingSet.hyperParameters()
+    runInformation["Model HPs"] = model.hyperParameters()
+    runInformation["Trainer HPs"] = trainer.hyperParameters()
+
+    #TODO: AUtomatisch einen kleinen Steckbrief der Hardware mitloggen...
+    hardwareInfo = {
+                "Used Device":device
+            }
+
+    runInformation["Hardware Info"] = hardwareInfo
+
+    with open(resultFolder+"HyperParametersAndMetadata.json","w") as f:
+        json.dump(runInformation,f,default=str,indent = 4)
+    
+    #########################################
+    #   Begin of the Training...            #
+    #########################################
+
     model.to(device)    
         
     history = {"train":[],"val":[]}

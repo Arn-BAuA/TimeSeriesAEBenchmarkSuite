@@ -12,7 +12,7 @@ class Trainer(block):
 
     def __init__(self,model,device,**hyperParameters):
 
-        block.__init__(self,**hyperParameters)
+        block.__init__(self,"SingleInstanceTrainer",**hyperParameters)
         
         self.device = device
         
