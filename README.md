@@ -38,6 +38,10 @@ The trained model will than be tested on the testset. Performance characteristic
 The diffrent methods that implement the interfaces specified above are stored in the folders in the repo in separate python files. Often used hyperparameter combinations are stored along with them in a folder that must be named like the script containing the module itself.
 The Benchmark method takes the used classes methods , paths and hyperparameterdicts as inputs
 
+### Block and Datablock
+
+The Hyperparameter storage and handling doesnt change between the blocks that are mentioned above. The block and datablock handle the hyperparameter management on an abstract polymorph level. Trainer and Model inhere from block. The situation with the dataset is a bit more complicated, since the setwrapper itself is not an object. Its just a method, that return the datasets, which are of class DataBlock. A generic implementation of Block for all Datasets.
+
 ### Working with the Suite
 
 The benchmark scipt has to be called form somewhere. We dont call it directly. We use an experiment script.
