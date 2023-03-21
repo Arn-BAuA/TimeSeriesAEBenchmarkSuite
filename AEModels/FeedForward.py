@@ -14,7 +14,9 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
 
         block.__init__(self,"FeedForwardAE",**HyperParameters) 
         nn.Module.__init__(self)
+        
 
+        #Todo: Clean up and activationfunction as Hyperparameter
         self.model = nn.Sequential(
                     torch.nn.Linear(Dimensions*self.HP["InputSize"] , 100),
                     torch.nn.ReLU(),

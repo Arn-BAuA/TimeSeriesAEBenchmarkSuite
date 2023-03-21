@@ -20,6 +20,7 @@ class Model(nn.Module):#Autoencoder form Bin's drift detection script. (Malhorta
         self.encoder = nn.LSTM(
                     input_size = self.input_dim,
                     hidden_size = self.hidden_dim,
+                    num_layers = HPs["Layers"],
                     batch_first = True
                 )
 
@@ -38,6 +39,8 @@ class Model(nn.Module):#Autoencoder form Bin's drift detection script. (Malhorta
     def forward(self,x):
         
         encoder_out,encoder_hidden = self.encoder(x)
+        
+        encoder_hidden = torch.flip(encoder_hidden,[1])
 
         decoder_input = torch.zeros_like(x)
         

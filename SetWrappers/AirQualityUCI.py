@@ -1,7 +1,10 @@
 
 import pandas as pd
 from datetime import date,time,datetime
+
 from random import random, seed
+seed(1) 
+
 import numpy as np
 import torch
 
@@ -25,9 +28,15 @@ Columns = [
 
 def loadData(dimensions,**hyperParameters):
     
+    if dimensions > len(Columns):
+        raise ValueError(f"Demanded dimension is {dimensions}. this dataset offers a maximun dimension of {len(Columns)}")
+
     defaultHyperParameters = {
             "sampleWindowSize" : 150,
             "includeTimeStamps" :False,
+            #Due to the missing values in the DF which are not cleand, we create the oportunity to
+            # chose manually, which intervals to use for which set. THe Dates are chosen in such a way,
+            # that there are more holes in the test set than in the training set.
             "TrainingSetSize" : 1000,
             "BeginDateTrainingData" : datetime(2004,4,1),
             "EndDateTrainingData" : datetime(2005,1,1),
@@ -59,9 +68,8 @@ def loadData(dimensions,**hyperParameters):
     # Sampling the DataSets         #
     #################################
 
-
-    seed(1)
-
+    # Creating numberOfSamples many tensors with samplewindows size many values per dimension
+    # taken at a random position in the interval defined by the 2 dates.
     def SampleDataSet(beginDate,endDate,numberOfSamples):
     
         DataSet = [0] * numberOfSamples
@@ -72,6 +80,7 @@ def loadData(dimensions,**hyperParameters):
         else:
             #conversion of datetime to timestamp for later conversion to pytorch tensor
             sampleArea["Date_Time"] = sampleArea.Date_Time.values.astype(np.int64)
+            #TODO: Noramlize timestamps to be between 0 and 1 in one window
 
         if len(sampleArea.index) < HPs["sampleWindowSize"]:
             raise Exception(f"The Samplewindow size is larger than the given range to sample from ({sampleWindowSize}/{len(sampleArea.index)})")
@@ -84,7 +93,6 @@ def loadData(dimensions,**hyperParameters):
             sequence = sampleArea.iloc[np.arange(position,position+HPs["sampleWindowSize"])]
             #conversion to tensor
             DataSet[i] = torch.tensor(sequence.values.astype(np.float32))
-            #DataSet[i] = torch.transpose(DataSet[i],0,1)
     
         return DataSet
 
