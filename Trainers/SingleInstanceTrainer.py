@@ -23,9 +23,8 @@ class Trainer(block):
         best_model_wts = copy.deepcopy(model.state_dict())
         self.best_loss = 1e9
 
-    def doEpoch(self,model,trainingSet,validationSet,history):
+    def doEpoch(self,model,trainingSet,validationSet):
     
-        train_loss = []
         for seq_true in trainingSet.Data():
 
             self.optimizer.zero_grad()
@@ -37,8 +36,6 @@ class Trainer(block):
 
             loss.backward()
             self.optimizer.step()
-
-            train_loss.append(loss.item())
 
         val_loss = []
 
@@ -53,17 +50,13 @@ class Trainer(block):
                 loss = self.criterion(seq_pred,seq_true)
                 val_loss.append(loss.item())
 
-        train_loss = np.mean(train_loss)
         val_loss = np.mean(val_loss)
-
-        history["train"].append(train_loss)
-        history["val"].append(val_loss)
 
         if val_loss < self.best_loss:
             self.best_loss = val_loss
             self.best_model_wts = copy.deepcopy(model.state_dict())
 
-        return model,history
+        return model
 
     def finalizeTraining(self,model):
         model.load_state_dict(best_model_wts)

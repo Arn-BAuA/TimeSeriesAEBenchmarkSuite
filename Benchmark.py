@@ -69,19 +69,6 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
         
     history = {"train":[],"val":[]}
     
-    performanceMetadata = {}
-    
-    
-    dataSetTypes = ["Training Set","Validation Set","Test Set"]
-
-    def getGoalName(goal,setType): #Goal names double as indices, hece the method
-        str(goal)+"%-Goal on "+dataSetTypes[setType]
-
-    for goal in performanceGoals:
-        performaceMetadata[getGoalName(goal,0)] = "Not Reached" # Training Set
-        performaceMetadata[getGoalName(goal,1)] = "Not Reached" # Validation Set
-        performaceMetadata[getGoalName(goal,2)] = "Not Reached" # Test Set
-    
     def calculateError(model,Dataset):
         Error = [0]*len(Dataset.Data())
 
@@ -93,15 +80,13 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
             Error.append(criterion(seq_true,seq_pred).item())
         
         return np.mean(Error) 
+    
 
-
-    def evaluatePerformance(model,DataSet,setType):
-        
 
     for epoch in range(0,n_epochs):
-        model,history = trainer.doEpoch(model,trainingSet,validationSet,history)
+        model = trainer.doEpoch(model,trainingSet,validationSet)
         print(f"Epoch: {epoch} , Train.Err.: {history['train'][-1]} , Val.Err.: {history['val'][-1]}")
-
+        
         #check Performance goals,
 
         #if met or certain number of epochs:
