@@ -59,5 +59,5 @@ class Trainer(block):
         return model
 
     def finalizeTraining(self,model):
-        model.load_state_dict(best_model_wts)
+        model.load_state_dict(self.best_model_wts)
 

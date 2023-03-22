@@ -2,7 +2,6 @@
 
 import torch
 
-
 def initializeDevice():
     device = "cpu"
 
@@ -21,13 +20,15 @@ from datetime import datetime
 import json
 import pandas as pd
 import time
+import numpy as np
 
 ###Performance goals are performance goals in percents of the initial error, they are tracked
 # for validation, training and test set
 
 def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSave,device,SaveAfterEpochs = 10,PerformanceGoals = [70,50,20,15,10,5,3,1,0.5,0.1,0.01,0.001],n_exampleOutputs = 5):
     
-    criterion = ...
+    #TODO this here needs to be passed as a parameter along with other metrics
+    criterion = torch.nn.L1Loss(reduction = "sum").to(device)
 
     now = str(datetime.now())
     resultFolder = pathForResults+pathToSave+now
@@ -80,17 +81,17 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
     CSVDelimiter = '\t' #so its more like tsv instead of csv...
 
     #This file contains the error on trainingset and validationset and the runtime of the training
-    ErrorsFile = open("Errors.csv","w")
+    ErrorsFile = open(resultFolder+"Errors.csv","w")
     ErrorsFile.write("Epoch"+CSVDelimiter+"Training Set Error"+CSVDelimiter+"Validation Set Error"+CSVDelimiter+"Wall Time of Epoch (s)"+CSVDelimiter+"CPU Time of Epoch (s)"+"\n")
 
     def writeToErrors(epoch,TSError,VSError,WallTime,CPUTime):
         ErrorsFile.write(str(epoch)+CSVDelimiter+str(TSError)+CSVDelimiter+str(VSError)+CSVDelimiter+str(WallTime)+CSVDelimiter+str(CPUTime)+"\n")
 
     #This file v
-    TrainingSetGoals = open("TSGoals","w")
+    TrainingSetGoals = open(resultFolder+"TSGoals","w")
     TrainingSetGoals.write("Goal Target (%)"+CSVDelimiter+"Reached in Epoch"+CSVDelimiter+"Elapsed Training Wall Time (s)"+ CSVDelimiter+"Elapsed Training CPU Time (s)"+"\n")
 
-    ValidationSetGoals = open("VSGoals","w")
+    ValidationSetGoals = open(resultFolder+"VSGoals","w")
     ValidationSetGoals.write("Goal Target (%)"+CSVDelimiter+"Reached in Epoch"+CSVDelimiter+"Elapsed Training Wall Time (s)"+ CSVDelimiter+"Elapsed Training CPU Time (s)"+"\n")
 
     def writeToGoals(tableFile,goal,epoch,totalWallTime,totalCPUTime):
@@ -106,28 +107,32 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
         def saveExample(seq_true,pathToSave):
             seq_true = seq_true.to(device)
             seq_pred = model(seq_true)
-            #seq_pred = seq_pred.to("cpu")
+            
+            seq_true = seq_true.to("cpu")
+            seq_pred = seq_pred.to("cpu")
+            
 
-            tr = pd.DataFrame(seq_true.numpy())
-            pr = pd.DataFrame(seq_pred.numpy())
+            tr = pd.DataFrame(seq_true.detach().numpy())
+            pr = pd.DataFrame(seq_pred.detach().numpy())
 
             trColumnNames = []
             prColumnNames = []
 
-            for i in range(0,trainingSet.Dimension):
+            for i in range(0,trainingSet.Dimension()):
                 trColumnNames.append("input_Dimension_"+str(i))
                 prColumnNames.append("output_Dimension_"+str(i))
             
-            tr.set_axis(trColumnNames,axis=1)
-            pr.set_axis(prColumnNames,axis=1)
+            tr=tr.set_axis(trColumnNames,axis=1)
+            pr=pr.set_axis(prColumnNames,axis=1)
 
+            
             result = pd.concat([tr,pr],axis=1)
             result.to_csv(pathToSave+".csv",sep = CSVDelimiter)
 
         for i in range(0,n_exampleOutputs):
-            saveExample(trainingSet.Data[i],snapshotDir+"TrainingSetExample"+str(i+1))
-            saveExample(validationSet.Data[i],snapshotDir+"ValidationSetExample"+str(i+1))
-            saveExample(testSet.Data[i],snapshotDir+"TestSetExample"+str(i+1))
+            saveExample(trainingSet.Data()[i],snapshotDir+"TrainingSetExample"+str(i+1))
+            saveExample(validationSet.Data()[i],snapshotDir+"ValidationSetExample"+str(i+1))
+            saveExample(testSet.Data()[i],snapshotDir+"TestSetExample"+str(i+1))
 
     #########################################
     #   Begin of the Training...            #
@@ -189,19 +194,22 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
 
         #check Performance goals,
         
-        def checkAndUpdateGoals(Error,initialError,unreachedGoals,fileToWriteResult):
+        def checkAndUpdateGoals(Error,initialError,unreachedGoals,fileToWriteResult,setName):
             ErrPercent = 100*(Error / initialError)
 
             for i in range(0,len(unreachedGoals)):
 
-                if unreachedGoals < ErrPercent:
+                if unreachedGoals[i] < ErrPercent:
                     #The Goal with index i is the first of the unreached that is not reached in this run
                     # The others which are befor it in the list are reached (There is the possibility to
                     # Reach multible performance goals in one epoch)
                     for j in range(0,i):
                         writeToGoals(fileToWriteResult,unreachedGoals[j],epoch,TotalTrainingWallTime,TotalTrainingCPUTime)
-
-                    createModelSnapshot(model,GoalPath,"Goals Reached at Epoch "+str(epoch)):
+                    
+                    
+                    if i > 0:
+                        print(f"Reached Goal {unreachedGoals[i-1]} with Error Percentage {ErrPercent} on the {setName}.")
+                        createModelSnapshot(model,GoalPath,setName+": Goals Reached at Epoch "+str(epoch))
 
                     unreachedGoals = unreachedGoals[i:]
 
@@ -215,11 +223,12 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
             initialTrainingError = TrainingError
             initialValidationError = ValidationError
         else:
-            unreachedTSGoals = checkAndUpdateGoals(TrainingError,initialTrainingError,unreachedTSGoals,trainingSetGoals)
-            unreachedVSGoals = checkAndUpdateGoals(ValidationError,initialValidationError,unreachedVSGoals,validationSetGoals)
+            unreachedTSGoals = checkAndUpdateGoals(TrainingError,initialTrainingError,unreachedTSGoals,TrainingSetGoals,"Training Set")
+            unreachedVSGoals = checkAndUpdateGoals(ValidationError,initialValidationError,unreachedVSGoals,ValidationSetGoals,"Validation Set")
         
         if epoch%SaveAfterEpochs == 0:
-            createModelSnapshot(model,MilestonePath,"Milestone at "+str(epoch)+" Epochs"):
+            print(f"Logged Milestone for {epoch} epochs.")
+            createModelSnapshot(model,MilestonePath,"Milestone at "+str(epoch)+" Epochs")
 
     trainer.finalizeTraining(model)
     
@@ -235,11 +244,11 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
     ErrorsFile.close()
 
     for goal in unreachedTSGoals:
-        writeToGoals(TrainingSetGoals,goal,"NaN")
+        writeToGoals(TrainingSetGoals,goal,"NaN","NaN","NaN")
     
     TrainingSetGoals.close()
 
-    for goal in unreachedTVSGoals:
-        writeToGoals(ValidationSetGoals,goal,"NaN")
+    for goal in unreachedVSGoals:
+        writeToGoals(ValidationSetGoals,goal,"NaN","NaN","NaN")
     
     ValidationSetGoals.close()
