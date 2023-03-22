@@ -19,6 +19,7 @@ import os
 from datetime import datetime
 import json
 import pandas as pd
+import time
 
 ###Performance goals are performance goals in percents of the initial error, they are tracked
 # for validation, training and test set
@@ -60,14 +61,48 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
 
     runInformation["Hardware Info"] = hardwareInfo
 
+    #Save Metadata for this run
+    with open(resultFolder+"HyperParametersAndMetadata.json","w") as f:
+        json.dump(runInformation,f,default=str,indent = 4)
     
+    #Setting up files and folders to write to in the training:
+    MilestonePath = resultFolder+"Milestones" #Every n epochs, a snapshot of the model and some example evaluations are stored here
+    GoalPath = resultFolder+"Goals" #Every time a performance Goal is reached, a snapshot of the model will be stored here
+
+    os.mkdir(MilestonePath)
+    os.mkdir(GoalPath)
+
+    MilestonePath += "/"
+    GoalPath += "/"
+
+    #Definition of the csv files
+    CSVDelimiter = '\t' #so its more like tsv instead of csv...
+
+    #This file contains the error on trainingset and validationset and the runtime of the training
+    ErrorsFile = open("Errors.csv","w")
+    ErrorsFile.write("Epoch"+CSVDelimiter+"Training Set Error"+CSVDelimiter+"Validation Set Error"+CSVDelimiter+"Wall Time of Epoch (s)"+CSVDelimiter+"CPU Time of Epoch (s)"+"\n")
+
+    def writeToErrors(epoch,TSError,VSError,WallTime,CPUTime):
+        ErrorsFile.write(str(epoch)+CSVDelimiter+str(TSError)+CSVDelimiter+str(VSError)+CSVDelimiter+str(WallTime)+CSVDelimiter+str(CPUTime)+"\n")
+
+    #This file v
+    TrainingSetGoals = open("TSGoals","w")
+    TrainingSetGoals.write("Goal Target (%)"+CSVDelimiter+"Reached in Epoch"+"\n")
+
+    ValidationSetGoals = open("VSGoals","w")
+    ValidationSetGoals.write("Goal Target (%)"+CSVDelimiter+"Reached in Epoch"+"\n")
+
+    def writeToGoals(tableFile,goal,epoch):
+        tableFile.write(str(goal)+CSVDelimiter+str(epoch))
+
     #########################################
     #   Begin of the Training...            #
     #########################################
+    
+    unreachedTSGoals = PerformanceGoals.copy()
+    unreachedVSGoals = PerformanceGoals.copy()
 
     model.to(device)    
-        
-    history = {"train":[],"val":[]}
     
     def calculateError(model,Dataset):
         Error = [0]*len(Dataset.Data())
@@ -84,15 +119,43 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
 
 
     for epoch in range(0,n_epochs):
-        model = trainer.doEpoch(model,trainingSet,validationSet)
-        print(f"Epoch: {epoch} , Train.Err.: {history['train'][-1]} , Val.Err.: {history['val'][-1]}")
         
-        #check Performance goals,
+        # ### ## # ## ######### ## # ### ### ## ##
+        #### # ##### ## ## # ###### ## #### ## ## # ###
+        ###### ######### # ##### ## ### #
 
+        startTime = time.time()
+        startCPUTime = time.process_time()
+
+        model = trainer.doEpoch(model,trainingSet,validationSet)
+
+        endTime = time.time()
+        endCPUTime = time.process_time()
+        
+        # ### ## # ## ######### ## # ### ### ## ##
+        #### # ##### ## ## # ###### ## #### ## ## # ###
+        ###### ######### # ##### ## ### #
+
+        TrainingError = calculateError(model, trainingSet)
+        ValidationError = calculateError(model, validationSet) 
+        WallTime = endTime - startTime
+        CPUTime = endCPUTime - startTime
+
+        print(f"Epoch: {epoch} , Train.Err.: {TrainingError} , Val.Err.: {ValidationError}")
+        
+        writeToErrors(epoch,TrainingError,ValidationError,WallTime,CPUTime)
+
+        #check Performance goals,
+        
+        
+        
         #if met or certain number of epochs:
         #export examples, save model stads
 
     trainer.finalizeTraining(model)
+    
+    #Benchmark finished model:
+    #What is the runtime for an average evaluation?
 
     #Save Trained Model
     #Save History
@@ -100,5 +163,14 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
     #evaluate model
 
     #Save Performance Characteristics
-    with open(resultFolder+"HyperParametersAndMetadata.json","w") as f:
-        json.dump(runInformation,f,default=str,indent = 4)
+    ErrorsFile.close()
+
+    for goal in unreachedTSGoals:
+        writeToGoals(TrainingSetGoals,goal,"NaN")
+    
+    TrainingSetGoals.close()
+
+    for goal in unreachedTVSGoals:
+        writeToGoals(ValidationSetGoals,goal,"NaN")
+    
+    ValidationSetGoals.close()
