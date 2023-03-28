@@ -22,6 +22,11 @@ import pandas as pd
 import time
 import numpy as np
 
+def createFolderWithTimeStamp(folderName,excludeResultFolder = False):
+    now = str(datetime.now())
+    os.mkdir(pathForResults+folderName+now)
+    return folderName+now
+
 ###Performance goals are performance goals in percents of the initial error, they are tracked
 # for validation, training and test set
 
@@ -30,9 +35,8 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
     #TODO this here needs to be passed as a parameter along with other metrics
     criterion = torch.nn.L1Loss(reduction = "sum").to(device)
 
-    now = str(datetime.now())
-    resultFolder = pathForResults+pathToSave+now
-    os.mkdir(resultFolder)
+    resultFolder = pathToSave
+    resultFolder = pathForResults+createFolderWithTimeStamp(resultFolder)
     
     resultFolder += "/"
     ####################################

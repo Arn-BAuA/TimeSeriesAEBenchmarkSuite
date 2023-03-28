@@ -7,7 +7,7 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
     def _getDefaultHPs(self):
         return {"InputSize":150,
                 "LayerSequence":[100,50,20,50,100],
-                "Activation Function":"ReLU"}
+                "ActivationFunction":"ReLU"}
     
     def __init__(self,Dimensions,device,**HyperParameters):
         
@@ -31,7 +31,7 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
         for i in range(0,len(actualSequence)-2):
             print(actualSequence[i],actualSequence[i+1])
             LayerStack[2*i] = torch.nn.Linear(actualSequence[i],actualSequence[i+1])
-            LayerStack[2*i + 1] = activations[self.HP["Activation Function"]]()
+            LayerStack[2*i + 1] = activations[self.HP["ActivationFunction"]]()
         
         LayerStack[-1] = torch.nn.Linear(actualSequence[-2],actualSequence[-1])
 
