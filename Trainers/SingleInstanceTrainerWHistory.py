@@ -19,6 +19,10 @@ class Trainer(block):
         self.optimizer = torch.optim.Adam(model.parameters(),lr = 1e-3)
         self.criterion = nn.L1Loss(reduction = "sum").to(device)
 
+    
+        best_model_wts = copy.deepcopy(model.state_dict())
+        self.best_loss = 1e9
+
     def doEpoch(self,model,trainingSet,validationSet):
     
         for seq_true in trainingSet.Data():
@@ -33,9 +37,27 @@ class Trainer(block):
             loss.backward()
             self.optimizer.step()
 
+        val_loss = []
+
         model = model.eval()
     
+        with torch.no_grad():
+            for seq_true in validationSet.Data():
+
+                seq_true = seq_true.to(self.device)
+                seq_pred = model(seq_true)
+
+                loss = self.criterion(seq_pred,seq_true)
+                val_loss.append(loss.item())
+
+        val_loss = np.mean(val_loss)
+
+        if val_loss < self.best_loss:
+            self.best_loss = val_loss
+            self.best_model_wts = copy.deepcopy(model.state_dict())
+
         return model
 
     def finalizeTraining(self,model):
-        pass
+        model.load_state_dict(self.best_model_wts)
+
