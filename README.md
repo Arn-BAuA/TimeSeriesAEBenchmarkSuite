@@ -1,5 +1,7 @@
 # Time Series Autoencoder Benchmark Suite
 
+![](.mdpictures/Banner.png)
+
 ## Contents
 
 ## About this Repo and Basic Overview
