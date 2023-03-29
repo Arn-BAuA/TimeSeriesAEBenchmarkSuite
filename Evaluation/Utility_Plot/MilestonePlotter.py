@@ -10,8 +10,10 @@ import os
 
 CMapName = "winter" #Cmap for the plots.
 
-def plotMilestones(ax,rootDir,ExampleName):
+def plotMilestones(rootDir,ax,ExampleName):
     
+    rootDir = rootDir[:-1]
+
     milestoneEpochs = []
     milestoneFiles = []
     
@@ -25,7 +27,7 @@ def plotMilestones(ax,rootDir,ExampleName):
             if split[0] == "Milestone": #Dir is indeed a dir containing milestones
                 milestoneEpochs.append(int(split[2]))
                 milestoneFiles.append(rootDir+"/Milestones/"+item+"/"+ExampleName)
-    
+        
     #Getting the Last Epoch:
     errFile = open(rootDir+"/Errors.csv","r")
     last_line = errFile.readlines()[-1]
@@ -38,6 +40,7 @@ def plotMilestones(ax,rootDir,ExampleName):
     
     for i in range(0,len(milestoneEpochs)):
         
+        print(milestoneFiles[i])
         data = pd.read_csv(milestoneFiles[i],sep='\t')
         
         for column in data:
@@ -106,7 +109,7 @@ if __name__ == "__main__":
 
     img,ax = plt.subplots()
 
-    plotMilestones(ax,rootDir,ExampleName)
+    plotMilestones(rootDir,ax,ExampleName)
 
     plt.show()
     plt.close()

@@ -8,7 +8,7 @@ import pandas as pd
 
 def plotErrors(rootDir,ax,includerMilestones = True):
     
-    errorData = pd.read_csv(rootDir+"Errors.csv",sep="\t")
+    errorData = pd.read_csv(rootDir+"/Errors.csv",sep="\t")
     errorData.plot(x="Epoch",y="Training Set Error",ax =ax)
     errorData.plot(x="Epoch",y="Validation Set Error",ax =ax)
     
@@ -39,8 +39,8 @@ def plotErrors(rootDir,ax,includerMilestones = True):
 
             ax.text(x=x,y=y,s=errPercentage+"%")
 
-    tsGoals = open(rootDir+"TSGoals","r")
-    vsGoals = open(rootDir+"VSGoals","r")
+    tsGoals = open(rootDir+"/TSGoals","r")
+    vsGoals = open(rootDir+"/VSGoals","r")
     
     plotGoals(tsGoals,"Training Set",marker = "x",color="k")
     plotGoals(vsGoals,"Validation Set",marker = "o",color="k")
