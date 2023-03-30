@@ -6,9 +6,64 @@
 
 from BlockAndDatablock import Datablock
 import numpy as np
+from numpy.random import random
+
+def getSingleParameterVariation(value,span,changeRate,MaxSystemVelocity,duration,time):
+    nChanges = duration*changeRate
+
+    timePoints = np.random([nChanges])*duration
+    timePoints = timePoints.sort()
+    timePoints[0]=0
+    timePoints[-1] = duration
+
+    timeIntervals = timePoints[1:] - timePoints[:-1]
+    possibleMaxChange = timeIntervals*MaxSystemVelocity
+    
+    parameterValues = np.zeros(nChanges)
+
+    #Random Walk:
+    randomWalkValues[0] = (random()*2*span)-span #initial Parameter
+
+    
+    change = np.multiply(2*possibleMaxChange,random([nChanges-1]))-possibleMaxChange
+
+    for i in range(1,len(randomWalkValues)):
+        
+        if change[i-1] > 2*span:
+            newParameter = (2*span*random())-span
+        else:
+            newParameter = randomWalkValues[i-1] + change[i-1]
+
+            if newParameter < -span:
+                newParameter = -span -(newParameter+span)
+            if newParameter > span:
+                mewParameter = span - (newParameter-span)
+
+        randomWalkValues[i] = newParameter
+
+    #Getting parameter Varaition by linear interpolation between the points of the walk.
+    parameterValues = np.zeros(len(time))
+
+    for i in range(0,len(time)):
+        t1Index = np.argwhere(timePoints <= time[i]).max() #Since they are sorted, returns the index of the largest t value smaller time[i]
+        t2Index = np.argwhere(timePoints >= time[i]).max()
+
+        t1 = timePoints[t1Index]
+        v1 = randomWalkValues[t1Index]
+        t2 = timePoints[t2Index]
+        v2 = randomWalkValues[t2Index]
+
+        #LinearInterpolation:
+        parameterValues[i] = v1*((t2-time[i])/(t2-t1)) + v2 * ((time[i]-t1)/(t2-t1))
+
+    return parameterValues+value
 
 def generate1DSines(**HPs):
+    
+    numSines = len(HPs["SineAmplitudes"])
 
+    
+    
     
 
 def generateData(dimnsions,**hyperParameters):
@@ -27,6 +82,8 @@ def generateData(dimnsions,**hyperParameters):
         "SineAmplitudeSpan" :       [0.1 ],#plus minus
         "SineFrequency" :           [4],
         "SineFrequencySpan" :       [1], #Plus Minus
+        "SineOffset" :              [0],
+        "SineOffsetSpan":           [0],
 
         "AnomalousAmplitudes" :     [1], 
         "AnomalousAmplitudeSpan" :  [0.1], #Plus Minus
@@ -35,9 +92,12 @@ def generateData(dimnsions,**hyperParameters):
 
         "AnomalyInAmplitude" :      [False],
         "AnomalyInFrequency" :      [True],
+        "AnomalyInOffset"    :      [False],
         
         "NoiseLevel" :              0.02,
-        "SystemVelocity":           0.1, # The maximum rate at which the parameters change in parameter value per dimension per second.
+        "MaxSystemVelocity":           0.1, # The maximum rate at which the parameters change in parameter value per dimension per second.
+        "SystemChangeRate": 0.2,
+
         "AnomalyRampTime":          1,
         "DefaultAnomalyDuration":   2,
         "SampleTime":               0.5,
