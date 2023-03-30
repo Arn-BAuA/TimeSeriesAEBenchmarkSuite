@@ -1,9 +1,9 @@
 
 
 import matplotlib.pyplot as plt
-from Utility_Plot.ErrorPlotter import plotErrors 
-from Utility_Plot.MilestonePlotter import plotMilestones
-from Utility_Plot.ExamplePlotter import plotExample
+from Evaluation.Utility_Plot.ErrorPlotter import plotErrors 
+from Evaluation.Utility_Plot.MilestonePlotter import plotMilestones
+from Evaluation.Utility_Plot.ExamplePlotter import plotExample
 import os
 import glob
 

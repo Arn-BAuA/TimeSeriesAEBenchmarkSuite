@@ -1,7 +1,10 @@
 #!/bin/python
 
 from AEModels.FeedForward import Model as ModelClass
-from SetWrappers.AirQualityUCI import loadData
+
+#from SetWrappers.AirQualityUCI import loadData
+from DataGenerators.Sines import generateData as loadData
+
 from Trainers.SingleInstanceTrainer import Trainer
 from Benchmark import benchmark,initializeDevice
 import sys
@@ -15,9 +18,11 @@ else:
 device = initializeDevice()
 Dimensions = 1 # Dataset dimensions
 
+trainingSet,validationSet,testSet = loadData(Dimensions)
 
 model = ModelClass(Dimensions,device)
-trainingSet,validationSet,testSet = loadData(Dimensions)
+
+
 trainer = Trainer(model,device)
 
 benchmark(trainingSet,
