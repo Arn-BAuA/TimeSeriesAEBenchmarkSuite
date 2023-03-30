@@ -8,7 +8,7 @@ import os
 #####
 # THis Script plots the 
 
-CMapName = "winter" #Cmap for the plots.
+CMapName = "turbo" #Cmap for the plots.
 
 def plotMilestones(rootDir,ax,ExampleName):
     

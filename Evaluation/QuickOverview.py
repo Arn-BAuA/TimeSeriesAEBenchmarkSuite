@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from Utility_Plot.ErrorPlotter import plotErrors 
 from Utility_Plot.MilestonePlotter import plotMilestones
+from Utility_Plot.ExamplePlotter import plotExample
 import os
 import glob
 
@@ -37,6 +38,7 @@ def plotOverview(rootDir):
     for file in glob.glob(rootDir+"Final Model/*.csv"):
         file = file.split("/")[-1]
         createPlot(pngDir+"Milestones for "+file,pdfDir+"Milestones for "+file,plotMilestones,rootDir,ExampleName=file)
+        createPlot(pngDir+"Data in "+file,pdfDir+"Data in "+file,plotExample,rootDir,ExampleName=file)
     
 
 if __name__ == "__main__":
