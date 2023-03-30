@@ -21,6 +21,7 @@ import json
 import pandas as pd
 import time
 import numpy as np
+import subprocess
 
 def createFolderWithTimeStamp(folderName,excludeResultFolder = False):
     now = str(datetime.now())
@@ -62,10 +63,16 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
 
     #TODO: AUtomatisch einen kleinen Steckbrief der Hardware mitloggen...
     hardwareInfo = {
-                "Used Device":device
+                
+                "UsedComputationDevice":device,
             }
 
     runInformation["Hardware Info"] = hardwareInfo
+
+    gitHash = subprocess.check_output(["git","rev-parse","HEAD"]).decode("ascii").strip()
+    runInformation["GITHash"] = gitHash
+    
+    
 
     #Save Metadata for this run
     with open(resultFolder+"HyperParametersAndMetadata.json","w") as f:
