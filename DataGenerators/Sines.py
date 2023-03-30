@@ -7,6 +7,8 @@
 from BlockAndDatablock import Datablock
 import numpy as np
 from numpy.random import random
+import pandas as pd
+from Utility.DataSetSampler import RandomSampling
 
 def getSingleParameterVariation(value,span,changeRate,MaxSystemVelocity,duration,time):
     nChanges = duration*changeRate
@@ -61,26 +63,105 @@ def getSingleParameterVariation(value,span,changeRate,MaxSystemVelocity,duration
 
 def generate1DSines(**HPs,BlendArray,time):
     
-    sumOfSines =
+    sumOfSines = np.zeros(len(time))
 
-    for i in range(0,len(HPs["SineAmplitudes"])):
+    for i in range(0,len(HPs["Amplitudes"])):
         
         #Amplitude
-        NormalAmplitudeValues = getSingleParameterVariation(Amplitude,AmplitudeSpan,changeRate,MaxSystemVelocity,duration,time)
-        AnomalAmplitudeValues = getSingleParameterVariation(AnomalAmplitude,AnomalAmplitudeSpan,changeRate,MaxSystemVelocity,duration,time)
-        Amplitude = np.multiply(NormalAmplitudeValues,np.ones(len(BlendArray))-BlendArray) + np.multiply(AnomalAmplitudeValues,BlendArray)
+        NormalAmplitudeValues = getSingleParameterVariation(HPs["Amplitudes"][i],
+                                                            HPs["AmplitudeSpan"][i],
+                                                            HPs["SystemChangeRate"],
+                                                            HPs["MaxSystemVelocity"],
+                                                            HPs["Duration"],
+                                                            time)
+
+        AnomalAmplitudeValues = getSingleParameterVariation(HPs["AnomalousAmplitudes"][i],
+                                                            HPs["AnomalousAmplitudeSpan"][i],
+                                                            HPs["SystemChangeRate"],
+                                                            HPs["MaxSystemVelocity"],
+                                                            HPs["Duration"],
+                                                            time)
+
+        Amplitude = np.multiply(NormalAmplitudeValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInAmplitude"])) + np.multiply(AnomalAmplitudeValues,BlendArray*HPs["AnomalyMagnitudeInAmplitude"])
 
         #Frequency
-        
-        Frequency = 
+        NormalFrquencyValues = getSingleParameterVariation(HPs["Frequency"][i],
+                                                            HPs["FrequencySpan"][i],
+                                                            HPs["SystemChangeRate"],
+                                                            HPs["MaxSystemVelocity"],
+                                                            HPs["Duration"],
+                                                            time)
+
+        AnomalFrequencyValues = getSingleParameterVariation(HPs["AnomalousFrequency"][i],
+                                                            HPs["AnomalousFrequencySpan"][i],
+                                                            HPs["SystemChangeRate"],
+                                                            HPs["MaxSystemVelocity"],
+                                                            HPs["Duration"],
+                                                            time)
+
+        Frequency = np.multiply(NormalFrequencyValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInFrequency"])) + np.multiply(AnomalFrequencyValues,BlendArray*HPs["AnomalyMagnitudeInFrequency"])
+
+
         #Offset
-        
-        Offset =
+        NormalOffsetValues = getSingleParameterVariation(HPs["Offset"][i],
+                                                            HPs["OffsetSpan"][i],
+                                                            HPs["SystemChangeRate"],
+                                                            HPs["MaxSystemVelocity"],
+                                                            HPs["Duration"],
+                                                            time)
+
+        AnomalOffsetValues = getSingleParameterVariation(HPs["AnomalousOffset"][i],
+                                                            HPs["AnomalousOffsetSpan"][i],
+                                                            HPs["SystemChangeRate"],
+                                                            HPs["MaxSystemVelocity"],
+                                                            HPs["Duration"],
+                                                            time)
+
+        Offset = np.multiply(NormalOffsetValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInOffset"])) + np.multiply(AnomalOffsetValues,BlendArray*HPs["AnomalyMagnitudeInOffset"])
+
+ 
         
         sumOfSines += Offset+ np.multiply(Amplitude,np.sin(np.Multiply(time,Frequency)))
-    
+        
+        sunOfSines += (np.random(len(sumOfSines))*2*HPs["NoiseLevel"])-HPs["NoiseLevel"]
+
     return sumOfSines
     
+
+def generateSet(**HPs,numSamples,containsAnomalies,dimensions):
+ 
+    Time = np.linspace(0,HPs["TimeSpan"],int(HPs["TimeSpan"]/HPs["SampleRate"]))
+    
+    anomalyLenghInIndices = int(HPs["AnomalyDuration"]/HPs["SampleRate"])
+    rampTime = int(HPs["AnomalyRampTime"]/HPs["SampleRate"])
+
+    if anomalyLengthInIndices = 0:
+        anomalyLengthInIndices = 1
+    if rampTime = 0:
+        rampTime = 1
+
+    BlendArray = np.zeros(len(Time))
+    IsAnomaly = np.zeros(len(Time))
+    
+    if(containsAnomalies):
+        #Distirbute Anomalies
+        for i in range(0,int(len(Time)/HPs["AnomalyChance"])):
+            anomalyBegin = int(random()*(len(Time)-anomalyLengthInIndices))
+            BlendArray[anomalyBegin:anomalyBegin+anomalyLengthInIndices] = 1
+        #Smoothing for the ramptime:
+        BlendArray = np.convolve(BlendArray,np.ones(rampTime),"same")
+        IsAnomaly[np.argwhere(BlendArray > HPs["AnomalyThreshold"])] = 1
+    
+    data = pd.DataFrame.empty()
+    data["Time"] = Time
+    data["Is Anomaly"] = IsAnomaly
+
+    for i in range(0,dimensions):
+        data["Dimension "+str(i+1)] = generate1DSines(**HPs,BlendArray*HPs["AnomalyInDimension"],Time)
+
+    DataSet,IsAnomaly = RandomSampling(data,numSamples)
+    
+    return DataBlock("Synthetic Sines",DataSet,dimensions,**HPs)
 
 def generateData(dimnsions,**hyperParameters):
 
@@ -112,7 +193,7 @@ def generateData(dimnsions,**hyperParameters):
         "AnomalyMagnitudeInAmplitude" :      [0],
         "AnomalyMagnitudeInFrequency" :      [1],
         "AnomalyMagnitudeInOffset"    :      [0.1],
-        "AnomalyInDimension" : [1]
+        "AnomalyInDimension" : [1],
         
         "NoiseLevel" :              0.02,
         "MaxSystemVelocity":           0.1, # The maximum rate at which the parameters change in parameter value per dimension per second.
@@ -121,7 +202,7 @@ def generateData(dimnsions,**hyperParameters):
         "AnomaliesInTrainingdata" : False,
         "AnomaliesInValidationdata" :True,
 
-        "AnomalyThreshold": 0.3
+        "AnomalyThreshold": 0.3,
         "AnomalyRampTime":          1,
         "DefaultAnomalyDuration":   2,
         "SampleTime":               0.5,
@@ -135,28 +216,7 @@ def generateData(dimnsions,**hyperParameters):
         "TestSetSize" : 30,
     }
     
+
     HPs = {**defaultHyperParameters,**hyperParameters}
     
-    
-    Time = np.linspace(0,HPs["TimeSpan"],int(HPs["TimeSpan"]/HPs["SampleRate"]))
-    
-    anomalyLenghInIndices = int(HPs["AnomalyDuration"]/HPs["SampleRate"])
-    rampTime = int(HPs["AnomalyRampTime"]/HPs["SampleRate"])
-
-    if anomalyLengthInIndices = 0:
-        anomalyLengthInIndices = 1
-    if rampTime = 0:
-        rampTime = 1
-
-    BlendArray = np.zeros(len(Time))
-
-    #Distirbute Anomalies
-    for i in range(0,int(len(Time)/HPs["AnomalyChance"])):
-        anomalyBegin = int(random()*(len(Time)-anomalyLengthInIndices))
-        BlendArray[anomalyBegin:anomalyBegin+anomalyLengthInIndices] = 1
-    #Smoothing for the ramptime:
-    BlendArray = np.convolve(BlendArray,np.ones(rampTime),"same")
-    IsAnomaly = np.zeros(len(Time))
-    IsAnomaly[np.argwhere(BlendArray > HPs["AnomalyThreshold"])] = 1
-    
- 
+    return generateSet(**HPs,HPs["TrainingSetSize"],HPs["AnomaliesInTrainingdata"],dimensions),generateSet(**HPs,HPs["ValidationSetSize"],HPs["AnomaliesInValidationdata"],dimensions),generateSet(**HPs,HPs["TestSetSize"],True,dimensions)
