@@ -57,13 +57,29 @@ def getSingleParameterVariation(value,span,changeRate,MaxSystemVelocity,duration
         parameterValues[i] = v1*((t2-time[i])/(t2-t1)) + v2 * ((time[i]-t1)/(t2-t1))
 
     return parameterValues+value
+        
 
-def generate1DSines(**HPs):
+def generate1DSines(**HPs,BlendArray,time):
     
-    numSines = len(HPs["SineAmplitudes"])
+    sumOfSines =
 
+    for i in range(0,len(HPs["SineAmplitudes"])):
+        
+        #Amplitude
+        NormalAmplitudeValues = getSingleParameterVariation(Amplitude,AmplitudeSpan,changeRate,MaxSystemVelocity,duration,time)
+        AnomalAmplitudeValues = getSingleParameterVariation(AnomalAmplitude,AnomalAmplitudeSpan,changeRate,MaxSystemVelocity,duration,time)
+        Amplitude = np.multiply(NormalAmplitudeValues,np.ones(len(BlendArray))-BlendArray) + np.multiply(AnomalAmplitudeValues,BlendArray)
+
+        #Frequency
+        
+        Frequency = 
+        #Offset
+        
+        Offset =
+        
+        sumOfSines += Offset+ np.multiply(Amplitude,np.sin(np.Multiply(time,Frequency)))
     
-    
+    return sumOfSines
     
 
 def generateData(dimnsions,**hyperParameters):
@@ -78,34 +94,69 @@ def generateData(dimnsions,**hyperParameters):
 
     defaultHyperParameters = 
     {
-        "SineAmplitudes" :          [1 ],#center of the amplitude parameter span
-        "SineAmplitudeSpan" :       [0.1 ],#plus minus
-        "SineFrequency" :           [4],
-        "SineFrequencySpan" :       [1], #Plus Minus
-        "SineOffset" :              [0],
-        "SineOffsetSpan":           [0],
-
+        "Amplitudes" :          [1 ],#center of the amplitude parameter span
+        "AmplitudeSpan" :       [0.1 ],#plus minus
         "AnomalousAmplitudes" :     [1], 
         "AnomalousAmplitudeSpan" :  [0.1], #Plus Minus
+        
+        "Frequency" :           [4],
+        "FrequencySpan" :       [1], #Plus Minus
         "AnomalousFrequency" :      [7], 
         "AnomalousFrequencySpan" :  [1],#Plus Minus
+        
+        "Offset" :              [0],
+        "OffsetSpan":           [0],
+        "AnomalousOffset" : [0], #Plus Minus
+        "AnomalousOffsetSpan" : [0], #Plus Minus
 
-        "AnomalyInAmplitude" :      [False],
-        "AnomalyInFrequency" :      [True],
-        "AnomalyInOffset"    :      [False],
+        "AnomalyMagnitudeInAmplitude" :      [0],
+        "AnomalyMagnitudeInFrequency" :      [1],
+        "AnomalyMagnitudeInOffset"    :      [0.1],
+        "AnomalyInDimension" : [1]
         
         "NoiseLevel" :              0.02,
         "MaxSystemVelocity":           0.1, # The maximum rate at which the parameters change in parameter value per dimension per second.
         "SystemChangeRate": 0.2,
 
+        "AnomaliesInTrainingdata" : False,
+        "AnomaliesInValidationdata" :True,
+
+        "AnomalyThreshold": 0.3
         "AnomalyRampTime":          1,
         "DefaultAnomalyDuration":   2,
         "SampleTime":               0.5,
         "AnomalyChance":            0.01,
-        "TimeSpan":                 10000,#duration of the timeseries in the dataset 
+        "Duration":                 10000,#duration of the timeseries in the dataset 
         "RandomSeed":               1,
+
+
+        "TrainingSetSize": 1000,
+        "ValidationSetSize":100,
+        "TestSetSize" : 30,
     }
     
     HPs = {**defaultHyperParameters,**hyperParameters}
     
     
+    Time = np.linspace(0,HPs["TimeSpan"],int(HPs["TimeSpan"]/HPs["SampleRate"]))
+    
+    anomalyLenghInIndices = int(HPs["AnomalyDuration"]/HPs["SampleRate"])
+    rampTime = int(HPs["AnomalyRampTime"]/HPs["SampleRate"])
+
+    if anomalyLengthInIndices = 0:
+        anomalyLengthInIndices = 1
+    if rampTime = 0:
+        rampTime = 1
+
+    BlendArray = np.zeros(len(Time))
+
+    #Distirbute Anomalies
+    for i in range(0,int(len(Time)/HPs["AnomalyChance"])):
+        anomalyBegin = int(random()*(len(Time)-anomalyLengthInIndices))
+        BlendArray[anomalyBegin:anomalyBegin+anomalyLengthInIndices] = 1
+    #Smoothing for the ramptime:
+    BlendArray = np.convolve(BlendArray,np.ones(rampTime),"same")
+    IsAnomaly = np.zeros(len(Time))
+    IsAnomaly[np.argwhere(BlendArray > HPs["AnomalyThreshold"])] = 1
+    
+ 
