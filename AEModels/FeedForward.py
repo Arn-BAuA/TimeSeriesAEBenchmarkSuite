@@ -29,7 +29,6 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
         actualSequence = [Dimensions*self.HP["InputSize"]]+self.HP["LayerSequence"]+[Dimensions*self.HP["InputSize"]]
         
         for i in range(0,len(actualSequence)-2):
-            print(actualSequence[i],actualSequence[i+1])
             LayerStack[2*i] = torch.nn.Linear(actualSequence[i],actualSequence[i+1])
             LayerStack[2*i + 1] = activations[self.HP["ActivationFunction"]]()
         

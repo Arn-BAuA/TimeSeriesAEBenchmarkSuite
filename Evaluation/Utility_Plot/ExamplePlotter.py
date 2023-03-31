@@ -3,9 +3,13 @@ import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
+###
+# Script to plot the examples that where taken during the snapshots
+
+
 def plotExample(rootDir,ax,ExampleName):
 
-    data = pd.read_csv(root_dir+"/Final Model/"+ExampleName)
+    data = pd.read_csv(rootDir+"/Final Model/"+ExampleName,sep='\t')
 
     dataTimeStamps = []
     dataValues = []
@@ -20,14 +24,14 @@ def plotExample(rootDir,ax,ExampleName):
 
     dataValues = data.to_numpy()
 
-    if len(timeStamps) == 0:
+    if len(dataTimeStamps) == 0:
         #no time stamps
         for i in range(0,dataValues.shape[-1]):
-            ax.plot(data[...,i],label="Dim. "+str(i))
+            ax.plot(dataValues[...,i],label="Dim. "+str(i))
     else:
         #Data has Timestamps
         for i in range(0,dataValues.shape[-1]):
-            ax.plot(x=dataTimeStamps,y=data[...,i],label="Dim. "+str(i))
+            ax.plot(x=dataTimeStamps,y=dataValues[...,i],label="Dim. "+str(i))
     
     ax.legend()
     ax.set_xlabel("Time")

@@ -263,3 +263,5 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
         writeToGoals(ValidationSetGoals,goal,"NaN","NaN","NaN")
     
     ValidationSetGoals.close()
+
+    return resultFolder

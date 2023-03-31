@@ -24,8 +24,6 @@ def plotOverview(rootDir):
     
     def createPlot(PNGpath,PDFpath,method,r_d,**methodArgs):
         fig, ax = plt.subplots()
-        
-        print(r_d)
 
         method(r_d,ax,**methodArgs)
 

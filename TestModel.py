@@ -25,14 +25,14 @@ model = ModelClass(Dimensions,device)
 
 trainer = Trainer(model,device)
 
-benchmark(trainingSet,
-          validationSet,
-          testSet,
-          model,
-          trainer,
-          n_epochs=100,
-          pathToSave=pathToSave,
-          device = device)
+resultFolder = benchmark(trainingSet,
+                validationSet,
+                testSet,
+                model,
+                trainer,
+                n_epochs=100,
+                pathToSave=pathToSave,
+                device = device)
 
-plotOverview("Results/"+pathToSave)
+plotOverview(resultFolder)
 

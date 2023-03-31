@@ -40,7 +40,6 @@ def plotMilestones(rootDir,ax,ExampleName):
     
     for i in range(0,len(milestoneEpochs)):
         
-        print(milestoneFiles[i])
         data = pd.read_csv(milestoneFiles[i],sep='\t')
         
         for column in data:
