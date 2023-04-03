@@ -169,36 +169,39 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
     TotalTrainingWallTime = 0
     TotalTrainingCPUTime = 0
 
-    for epoch in range(0,n_epochs):
+    for epoch in range(0,n_epochs+1):
         
-        # ### ## # ## ######### ## # ### ### ## ##
-        #### # ##### ## ## # ###### ## #### ## ## # ###
-        ###### ######### # ##### ## ### #
+        if not epoch == 0:#No Training at the start for the initial impression
+            # ### ## # ## ######### ## # ### ### ## ##
+            #### # ##### ## ## # ###### ## #### ## ## # ###
+            ###### ######### # ##### ## ### #
 
-        startTime = time.time()
-        startCPUTime = time.process_time()
+            startTime = time.time()
+            startCPUTime = time.process_time()
 
-        model = trainer.doEpoch(model,trainingSet,validationSet)
+            model = trainer.doEpoch(model,trainingSet,validationSet)
 
-        endTime = time.time()
-        endCPUTime = time.process_time()
+            endTime = time.time()
+            endCPUTime = time.process_time()
         
-        # ### ## # ## ######### ## # ### ### ## ##
-        #### # ##### ## ## # ###### ## #### ## ## # ###
-        ###### ######### # ##### ## ### #
+            # ### ## # ## ######### ## # ### ### ## ##
+            #### # ##### ## ## # ###### ## #### ## ## # ###
+            ###### ######### # ##### ## ### #
+            WallTime = endTime - startTime
+            CPUTime = endCPUTime - startTime
+        else:
+            WallTime = 0
+            CPUTime = 0
 
         TrainingError = calculateError(model, trainingSet)
         ValidationError = calculateError(model, validationSet) 
         
-        WallTime = endTime - startTime
-        CPUTime = endCPUTime - startTime
-
         TotalTrainingWallTime += WallTime
         TotalTrainingCPUTime += CPUTime
 
-        print(f"Epoch: {epoch} , Train.Err.: {TrainingError} , Val.Err.: {ValidationError}")
+        print(f"Epoch: {epoch+1} , Train.Err.: {TrainingError} , Val.Err.: {ValidationError}")
         
-        writeToErrors(epoch,TrainingError,ValidationError,WallTime,CPUTime)
+        writeToErrors(epoch,TrainingError,ValidationError,TotalTrainingWallTime,TotalTrainingCPUTime)
         
         #if met or certain number of epochs
         #export examples, save model stads
