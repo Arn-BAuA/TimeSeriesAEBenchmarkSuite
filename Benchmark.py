@@ -72,6 +72,10 @@ def benchmark(trainingSet,validationSet,testSet,
     runInformation["SetWrapper HPs"] = trainingSet.hyperParameters()
     runInformation["Model HPs"] = model.hyperParameters()
     runInformation["Trainer HPs"] = trainer.hyperParameters()
+    
+    runInformation["Used Errors"] = []
+    for err in Errors:
+        runInformation["Used Errors"].append(err.Name())
 
     #TODO: AUtomatisch einen kleinen Steckbrief der Hardware mitloggen...
     hardwareInfo = {
