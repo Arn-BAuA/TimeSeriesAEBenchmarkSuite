@@ -33,17 +33,17 @@ from Errors.ReconstructionErrors import TorchErrorWrapper
 ###Performance goals are performance goals in percents of the initial error, they are tracked
 # for validation, training and test set
 
+device = initializeDevice()
+
 def benchmark(trainingSet,validationSet,testSet,
               model,
               trainer,
               n_epochs,
               pathToSave,
               device,
-              defaultError = TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device)
-              Errors = [],
-              DownStreamErrors = [],
+              defaultError = TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device),
+              Errors = [], #Can be normal or downstream errors
               SaveAfterEpochs = 10,
-              PerformanceGoals = [70,50,20,15,10,5,3,1,0.5,0.1,0.01,0.001],
               n_exampleOutputs = 5):
     
     Errors = [defaultError] + Errors
@@ -113,18 +113,19 @@ def benchmark(trainingSet,validationSet,testSet,
 
     ErrorColumnDict = {}
     
-    ErrorColumnDict[EpochKey] = [0]*(epochs+1)
-    ErrorColumnDict[CPUTKey] = [0]*(epochs+1)
-    ErrorColumnDict[WallTKey] = [0]*(epochs+1)
+    ErrorColumnDict[EpochKey] = [0]*(n_epochs+1)
 
     for err in Errors:
-        ErrorColumnDict[err.Name()+TSPostfixKey] = [0]*(epochs+1)
-        ErrorColumnDict[err.Name()+VSPostfixKey] = [0]*(epochs+1)
+        ErrorColumnDict[err.Name()+TSPostfixKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[err.Name()+VSPostfixKey] = [0]*(n_epochs+1)
+    
+    ErrorColumnDict[CPUTKey] = [0]*(n_epochs+1)
+    ErrorColumnDict[WallTKey] = [0]*(n_epochs+1)
 
     def writeToErrors(epoch,Errors,WallTime,CPUTime):    
         ErrorColumnDict[EpochKey][epoch] = epoch
         ErrorColumnDict[CPUTKey][epoch] = CPUTime
-        ErrorColumnDict[WallTimeKey][epoch] = WallTime
+        ErrorColumnDict[WallTKey][epoch] = WallTime
 
         for key in Errors:
             ErrorColumnDict[key][epoch] = Errors[key]
@@ -201,15 +202,19 @@ def benchmark(trainingSet,validationSet,testSet,
             WallTime = 0
             CPUTime = 0
 
-        TrainingError = calculateError(model, trainingSet)
-        ValidationError = calculateError(model, validationSet) 
+        EvaluatedErrors = {}
+
+        for err in Errors:
+            EvaluatedErrors[err.Name()+TSPostfixKey] = err.calculate(model, trainingSet)
+            EvaluatedErrors[err.Name()+VSPostfixKey] = err.calculate(model, validationSet) 
         
         TotalTrainingWallTime += WallTime
         TotalTrainingCPUTime += CPUTime
 
-        print(f"Epoch: {epoch+1} , Train.Err.: {TrainingError} , Val.Err.: {ValidationError}")
+        #Errors[0] is always the default error
+        print(f"Epoch: {epoch+1} , Train.Err.: {EvaluatedErrors[Errors[0].Name()+TSPostfixKey]} , Val.Err.: {EvaluatedErrors[Errors[0].Name()+VSPostfixKey]}")
         
-        writeToErrors(epoch,TrainingError,ValidationError,TotalTrainingWallTime,TotalTrainingCPUTime)
+        writeToErrors(epoch,EvaluatedErrors,TotalTrainingWallTime,TotalTrainingCPUTime)
         
         #if met or certain number of epochs
         #export examples, save model stads
@@ -229,6 +234,11 @@ def benchmark(trainingSet,validationSet,testSet,
 
 
     #Save Performance Characteristics
-    ErrorsFile.close()
+    errorData = pd.DataFrame()
+
+    for key in ErrorColumnDict:
+        errorData[key] = ErrorColumnDict[key]
+    
+    errorData.to_csv(resultFolder+"Errors.csv",sep=CSVDelimiter)
 
     return resultFolder

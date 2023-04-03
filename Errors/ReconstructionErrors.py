@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 #A wrapper class that makes the default pytorch loss functions axessable in the Benchmark script.
 class TorchErrorWrapper():

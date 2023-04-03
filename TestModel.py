@@ -34,5 +34,5 @@ resultFolder = benchmark(trainingSet,
                 pathToSave=pathToSave,
                 device = device)
 
-plotOverview(resultFolder)
+#plotOverview(resultFolder)
 
