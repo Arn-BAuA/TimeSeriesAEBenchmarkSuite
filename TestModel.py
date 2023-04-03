@@ -16,7 +16,7 @@ else:
     pathToSave = sys.argv[1]
 
 device = initializeDevice()
-Dimensions = 1 # Dataset dimensions
+Dimensions = 2 # Dataset dimensions
 
 trainingSet,validationSet,testSet = loadData(Dimensions)
 
@@ -30,7 +30,7 @@ resultFolder = benchmark(trainingSet,
                 testSet,
                 model,
                 trainer,
-                n_epochs=100,
+                n_epochs=20,
                 pathToSave=pathToSave,
                 device = device)
 

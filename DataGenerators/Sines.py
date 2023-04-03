@@ -66,63 +66,63 @@ def getSingleParameterVariation(value,span,changeRate,MaxSystemVelocity,duration
     retVal = parameterValues+value
     return retVal
 
-def generate1DSines(BlendArray,time,**HPs):
+def generate1DSines(dimension,BlendArray,time,**HPs):
     
     sumOfSines = np.zeros(len(time))
 
-    for i in range(0,len(HPs["Amplitudes"])):
+    for i in range(0,len(HPs["Amplitudes"][dimension])):
         
         #Amplitude
-        NormalAmplitudeValues = getSingleParameterVariation(HPs["Amplitudes"][i],
-                                                            HPs["AmplitudeSpan"][i],
+        NormalAmplitudeValues = getSingleParameterVariation(HPs["Amplitudes"][dimension][i],
+                                                            HPs["AmplitudeSpan"][dimension][i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        AnomalAmplitudeValues = getSingleParameterVariation(HPs["AnomalousAmplitudes"][i],
-                                                            HPs["AnomalousAmplitudeSpan"][i],
+        AnomalAmplitudeValues = getSingleParameterVariation(HPs["AnomalousAmplitudes"][dimension][i],
+                                                            HPs["AnomalousAmplitudeSpan"][dimension][i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        Amplitude = np.multiply(NormalAmplitudeValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInAmplitude"])) + np.multiply(AnomalAmplitudeValues,BlendArray*HPs["AnomalyMagnitudeInAmplitude"])
+        Amplitude = np.multiply(NormalAmplitudeValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInAmplitude"][dimension][i])) + np.multiply(AnomalAmplitudeValues,BlendArray*HPs["AnomalyMagnitudeInAmplitude"][dimension][i])
 
         #Frequency
-        NormalFrequencyValues = getSingleParameterVariation(HPs["Frequency"][i],
-                                                            HPs["FrequencySpan"][i],
+        NormalFrequencyValues = getSingleParameterVariation(HPs["Frequency"][dimension][i],
+                                                            HPs["FrequencySpan"][dimension][i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        AnomalFrequencyValues = getSingleParameterVariation(HPs["AnomalousFrequency"][i],
-                                                            HPs["AnomalousFrequencySpan"][i],
+        AnomalFrequencyValues = getSingleParameterVariation(HPs["AnomalousFrequency"][dimension][i],
+                                                            HPs["AnomalousFrequencySpan"][dimension][i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        Frequency = np.multiply(NormalFrequencyValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInFrequency"])) + np.multiply(AnomalFrequencyValues,BlendArray*HPs["AnomalyMagnitudeInFrequency"])
+        Frequency = np.multiply(NormalFrequencyValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInFrequency"][dimension][i])) + np.multiply(AnomalFrequencyValues,BlendArray*HPs["AnomalyMagnitudeInFrequency"][dimension][i])
 
 
         #Offset
-        NormalOffsetValues = getSingleParameterVariation(HPs["Offset"][i],
-                                                            HPs["OffsetSpan"][i],
+        NormalOffsetValues = getSingleParameterVariation(HPs["Offset"][dimension][i],
+                                                            HPs["OffsetSpan"][dimension][i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        AnomalOffsetValues = getSingleParameterVariation(HPs["AnomalousOffset"][i],
-                                                            HPs["AnomalousOffsetSpan"][i],
+        AnomalOffsetValues = getSingleParameterVariation(HPs["AnomalousOffset"][dimension][i],
+                                                            HPs["AnomalousOffsetSpan"][dimension][i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        Offset = np.multiply(NormalOffsetValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInOffset"])) + np.multiply(AnomalOffsetValues,BlendArray*HPs["AnomalyMagnitudeInOffset"])
+        Offset = np.multiply(NormalOffsetValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInOffset"][dimension][i])) + np.multiply(AnomalOffsetValues,BlendArray*HPs["AnomalyMagnitudeInOffset"][dimension][i])
 
  
         
@@ -162,7 +162,7 @@ def generateSet(numSamples,containsAnomalies,dimensions,**HPs):
     data["Is Anomaly"] = IsAnomaly
     
     for i in range(0,dimensions):
-        data["Dimension "+str(i+1)] = generate1DSines(BlendArray*HPs["AnomalyInDimension"],Time,**HPs)
+        data["Dimension "+str(i+1)] = generate1DSines(i,BlendArray*HPs["AnomalyInDimension"][i],Time,**HPs)
 
     DataSet,IsAnomaly = RandomSampling(data,numSamples,HPs["SampleWindowSize"],includeTime = False,dateTimeColumn = "Time")
     
@@ -179,29 +179,29 @@ def generateData(dimensions,**hyperParameters):
     # transition, a linear combination of normal an anormal is used.
 
     defaultHyperParameters = {
-        "Amplitudes" :          [1 ],#center of the amplitude parameter span
-        "AmplitudeSpan" :       [0.1 ],#plus minus
-        "AnomalousAmplitudes" :     [1.6], 
-        "AnomalousAmplitudeSpan" :  [0], #Plus Minus
+        "Amplitudes" :          [[1],[1] ],#center of the amplitude parameter span
+        "AmplitudeSpan" :       [[0.2],[0.1] ],#plus minus
+        "AnomalousAmplitudes" :     [[1.6],[1.6]], 
+        "AnomalousAmplitudeSpan" :  [[0],[0]], #Plus Minus
         
-        "Frequency" :           [0.5],
-        "FrequencySpan" :       [0], #Plus Minus
-        "AnomalousFrequency" :      [0.5], 
-        "AnomalousFrequencySpan" :  [0],#Plus Minus
+        "Frequency" :           [[0.2],[0.3]],
+        "FrequencySpan" :       [[0],[0]], #Plus Minus
+        "AnomalousFrequency" :      [[0.5],[0.5]], 
+        "AnomalousFrequencySpan" :  [[0],[0]],#Plus Minus
         
-        "Offset" :              [0],
-        "OffsetSpan":           [0],
-        "AnomalousOffset" : [0], #Plus Minus
-        "AnomalousOffsetSpan" : [0], #Plus Minus
+        "Offset" :              [[0],[0]],
+        "OffsetSpan":           [[0],[0]],
+        "AnomalousOffset" : [[0],[0]], #Plus Minus
+        "AnomalousOffsetSpan" : [[0],[0]], #Plus Minus
 
-        "AnomalyMagnitudeInAmplitude" :      [1],
-        "AnomalyMagnitudeInFrequency" :      [0.1],
-        "AnomalyMagnitudeInOffset"    :      [0.1],
-        "AnomalyInDimension" : [1],
+        "AnomalyMagnitudeInAmplitude" :      [[1],[1]],
+        "AnomalyMagnitudeInFrequency" :      [[0.1],[0.1]],
+        "AnomalyMagnitudeInOffset"    :      [[0.1],[0.1]],
+        "AnomalyInDimension" : [[1],[1]],
         
         "NoiseLevel" :              0.02,
         "MaxSystemVelocity":           0.01, # The maximum rate at which the parameters change in parameter value per dimension per second.
-        "SystemChangeRate": 0.2,
+        "SystemChangeRate": 0.01,
 
         "AnomaliesInTrainingdata" : False,
         "AnomaliesInValidationdata" :True,
