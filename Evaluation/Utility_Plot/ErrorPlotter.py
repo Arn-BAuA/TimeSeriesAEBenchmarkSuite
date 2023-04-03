@@ -6,47 +6,21 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def plotErrors(rootDir,ax,includerMilestones = True):
+def plotErrors(rootDir,ax,errorName):
     
     errorData = pd.read_csv(rootDir+"/Errors.csv",sep="\t")
-    errorData.plot(x="Epoch",y="Training Set Error",ax =ax)
-    errorData.plot(x="Epoch",y="Validation Set Error",ax =ax)
-    
-    #marking the epochs of the goals:
 
-    
-    def plotGoals(goalFile,SetName,**plotArgs):
-        labelAdded=False
-        goalFile.readline()#first line with the column names
-    
-        for line in goalFile:
-            split = line.split("\t")
-            errPercentage = split[0]
+    YLabels = []
+    XLabel = ""
 
-            if split[1] == "NaN":
-                break
+    for column in errorData:
+        if errorName in column:
+            YLabels.append(column)
+        if "Epoch" in column:
+            XLabel = column 
 
-            epoch = int(split[1])
-        
-            x=epoch
-            y=errorData.iloc[epoch][SetName+" Error"]
-
-            if not labelAdded:
-                ax.scatter(x=[x],y=[y],label=SetName+" Goals",**plotArgs)
-                labelAdded = True
-            else:
-                ax.scatter(x=[x],y=[y],**plotArgs)
-
-            ax.text(x=x,y=y,s=errPercentage+"%")
-
-    tsGoals = open(rootDir+"/TSGoals","r")
-    vsGoals = open(rootDir+"/VSGoals","r")
-    
-    plotGoals(tsGoals,"Training Set",marker = "x",color="k")
-    plotGoals(vsGoals,"Validation Set",marker = "o",color="k")
-
-    tsGoals.close()
-    vsGoals.close()
+    for label in YLabels:
+        errorData.plot(x=XLabel,y=label,ax =ax)
 
     ax.legend()
     ax.set_ylabel("Error")
@@ -61,7 +35,7 @@ if __name__ == "__main__":
 
     fig,ax = plt.subplots()
 
-    plotErrors(rootDir,ax)
+    plotErrors(rootDir,ax,"L1")
 
     plt.show()
     plt.close()

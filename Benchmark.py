@@ -23,7 +23,7 @@ import time
 import numpy as np
 import subprocess
 
-def createFolderWithTimeStamp(folderName,excludeResultFolder = False):
+def createFolderWithTimeStamp(folderName):
     now = str(datetime.now())
     os.mkdir(pathForResults+folderName+now)
     return folderName+now
@@ -41,15 +41,17 @@ def benchmark(trainingSet,validationSet,testSet,
               n_epochs,
               pathToSave,
               device,
-              defaultError = TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device),
               Errors = [], #Can be normal or downstream errors
               SaveAfterEpochs = 10,
-              n_exampleOutputs = 5):
+              n_exampleOutputs = 5,
+              create_output = True, #for test purposes
+              defaultError = TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device)):
     
     Errors = [defaultError] + Errors
 
     resultFolder = pathToSave
-    resultFolder = pathForResults+createFolderWithTimeStamp(resultFolder)
+    if create_output:
+        resultFolder = pathForResults+createFolderWithTimeStamp(resultFolder)
     
     resultFolder += "/"
     ####################################
@@ -91,18 +93,17 @@ def benchmark(trainingSet,validationSet,testSet,
     
 
     #Save Metadata for this run
-    with open(resultFolder+"HyperParametersAndMetadata.json","w") as f:
-        json.dump(runInformation,f,default=str,indent = 4)
+    if create_output:
+        with open(resultFolder+"HyperParametersAndMetadata.json","w") as f:
+            json.dump(runInformation,f,default=str,indent = 4)
     
     #Setting up files and folders to write to in the training:
     MilestonePath = resultFolder+"Milestones" #Every n epochs, a snapshot of the model and some example evaluations are stored here
-    GoalPath = resultFolder+"Goals" #Every time a performance Goal is reached, a snapshot of the model will be stored here
-
-    os.mkdir(MilestonePath)
-    os.mkdir(GoalPath)
+    
+    if create_output:
+        os.mkdir(MilestonePath)
 
     MilestonePath += "/"
-    GoalPath += "/"
 
     #Definition of the csv files
     CSVDelimiter = '\t' #so its more like tsv instead of csv...
@@ -223,14 +224,15 @@ def benchmark(trainingSet,validationSet,testSet,
         #if met or certain number of epochs
         #export examples, save model stads
         
-        if epoch%SaveAfterEpochs == 0:
+        if epoch%SaveAfterEpochs == 0 and create_output:
             print(f"Logged Milestone for {epoch} epochs.")
             createModelSnapshot(model,MilestonePath,"Milestone at "+str(epoch)+" Epochs")
 
     trainer.finalizeTraining(model)
     
     #Save Trained Model
-    createModelSnapshot(model,resultFolder,"Final Model")
+    if create_output:
+        createModelSnapshot(model,resultFolder,"Final Model")
     
 
     #Benchmark finished model:
@@ -243,6 +245,7 @@ def benchmark(trainingSet,validationSet,testSet,
     for key in ErrorColumnDict:
         errorData[key] = ErrorColumnDict[key]
     
-    errorData.to_csv(resultFolder+"Errors.csv",sep=CSVDelimiter)
+    if create_output:
+        errorData.to_csv(resultFolder+"Errors.csv",sep=CSVDelimiter)
 
     return resultFolder

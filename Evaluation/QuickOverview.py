@@ -6,10 +6,12 @@ from Evaluation.Utility_Plot.MilestonePlotter import plotMilestones
 from Evaluation.Utility_Plot.ExamplePlotter import plotExample
 import os
 import glob
+import json
 
 #################################
 #
 #
+
 
 
 def plotOverview(rootDir):
@@ -30,8 +32,13 @@ def plotOverview(rootDir):
         plt.savefig(PNGpath+".png")
         plt.savefig(PDFpath+".pdf")
         plt.close()
+   
+    metaDataFile = open(rootDir+"HyperParametersAndMetadata.json","r")
+    runMetadata = json.load(metaDataFile)
+    metaDataFile.close()
 
-    createPlot(overviewDir+"Errors",overviewDir+"Errors",plotErrors,rootDir)
+    for errorName in runMetadata["Used Errors"]: 
+        createPlot(pngDir+errorName,pdfDir+errorName,plotErrors,rootDir,errorName = errorName)
 
     for file in glob.glob(rootDir+"Final Model/*.csv"):
         file = file.split("/")[-1]
