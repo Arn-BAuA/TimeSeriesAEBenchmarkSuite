@@ -8,7 +8,7 @@ class TorchErrorWrapper():
         self.device = device
         self.errorFunction = errorFunction.to(device)
 
-    def __Name__(self):
+    def Name(self):
         return self.name
 
     def calculate(self,model,Dataset):
