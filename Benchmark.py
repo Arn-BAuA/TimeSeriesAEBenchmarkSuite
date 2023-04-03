@@ -28,13 +28,23 @@ def createFolderWithTimeStamp(folderName,excludeResultFolder = False):
     os.mkdir(pathForResults+folderName+now)
     return folderName+now
 
+from Errors.ReconstructionErrors import TorchErrorWrapper
+
 ###Performance goals are performance goals in percents of the initial error, they are tracked
 # for validation, training and test set
 
-def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSave,device,SaveAfterEpochs = 10,PerformanceGoals = [70,50,20,15,10,5,3,1,0.5,0.1,0.01,0.001],n_exampleOutputs = 5):
+def benchmark(trainingSet,validationSet,testSet,
+              model,
+              trainer,
+              n_epochs,
+              pathToSave,
+              device,
+              Errors = [TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device)],
+              DownStreamErrors = [],
+              SaveAfterEpochs = 10,
+              PerformanceGoals = [70,50,20,15,10,5,3,1,0.5,0.1,0.01,0.001],
+              n_exampleOutputs = 5):
     
-    #TODO this here needs to be passed as a parameter along with other metrics
-    criterion = torch.nn.L1Loss(reduction = "sum").to(device)
 
     resultFolder = pathToSave
     resultFolder = pathForResults+createFolderWithTimeStamp(resultFolder)
@@ -153,18 +163,8 @@ def benchmark(trainingSet,validationSet,testSet,model,trainer,n_epochs,pathToSav
     unreachedVSGoals = PerformanceGoals.copy()
 
     model.to(device)    
-
-    def calculateError(model,Dataset):
-        Error = [0]*len(Dataset.Data())
-
-        for i in range(0,len(Dataset.Data())):
-            seq_true = Dataset.Data()[i]
-            seq_true = seq_true.to(device)
-            seq_pred = model(seq_true)
-
-            Error.append(criterion(seq_true,seq_pred).item())
-        
-        return np.mean(Error) 
+    
+    #Calculate Error war hier definiert...
 
     TotalTrainingWallTime = 0
     TotalTrainingCPUTime = 0
