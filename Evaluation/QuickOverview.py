@@ -38,7 +38,9 @@ def plotOverview(rootDir):
     metaDataFile.close()
 
     for errorName in runMetadata["Used Errors"]: 
-        createPlot(pngDir+errorName,pdfDir+errorName,plotErrors,rootDir,errorName = errorName)
+        createPlot(pngDir+errorName+" against Epochs",pdfDir+errorName+" against Epochs",plotErrors,rootDir,errorName = errorName,against = "Epoch")
+        createPlot(pngDir+errorName+" against CPUTime",pdfDir+errorName+" against CPU Time",plotErrors,rootDir,errorName = errorName,against = "CPUTime")
+        createPlot(pngDir+errorName+" against Wall Time",pdfDir+errorName+" against Wall Time",plotErrors,rootDir,errorName = errorName,against= "WallTime")
 
     for file in glob.glob(rootDir+"Final Model/*.csv"):
         file = file.split("/")[-1]

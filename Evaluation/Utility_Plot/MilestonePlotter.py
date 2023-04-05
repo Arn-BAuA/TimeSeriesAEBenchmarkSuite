@@ -75,7 +75,7 @@ def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
         if len(timeStamps) == 0:
             #no time stamps.
             for dim in relevantDims:
-                ax.plot(data[...,i],**plotArgs)
+                ax.plot(data[...,dim],**plotArgs)
                 if not firstPlotDone:
                     firstPlotDone = True
                     if "label" in plotArgs:
@@ -83,14 +83,14 @@ def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
         else:
             #with time stamps
             for dim in relevantDims:
-                ax.plot(x=timeStamps,y=data[...,i],**plotArgs)
+                ax.plot(x=timeStamps,y=data[...,dim],**plotArgs)
                 if not firstPlotDone:
                     firstPlotDone = True
                     if "label" in plotArgs:
                         del plotArgs["label"]
 
 
-    for dim in range(0,len(AEGeneratedData)):
+    for i in range(0,len(AEGeneratedData)):
         plotDataFrame(trueDataTimestamps,AEGeneratedData[i],color=cmap(milestoneEpochs[i]))
 
     plotDataFrame(trueDataTimestamps,trueData,color="k",linestyle="dashed",linewidth = 2,label="Original Data")

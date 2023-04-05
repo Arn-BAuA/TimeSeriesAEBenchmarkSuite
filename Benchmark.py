@@ -250,7 +250,7 @@ def benchmark(trainingSet,validationSet,testSet,
     #
     #Snapshot Examples are selected based on the performance of the model on the training, test and validation set.
  
-    def saveExample(model,seq_true,pathToSave):
+    def saveExample(model,seq_true,pathToSave,labels = []):
         seq_true = seq_true.to(device)
         seq_pred = model(seq_true)
             
@@ -267,12 +267,18 @@ def benchmark(trainingSet,validationSet,testSet,
         for i in range(0,trainingSet.Dimension()):
             trColumnNames.append("input_Dimension_"+str(i))
             prColumnNames.append("output_Dimension_"+str(i))
-            
+        
+        
+
         tr=tr.set_axis(trColumnNames,axis=1)
         pr=pr.set_axis(prColumnNames,axis=1)
 
             
         result = pd.concat([tr,pr],axis=1)
+        
+        if not len(labels) == 0:
+            result["Is Anomaly"] = labels
+
         result.to_csv(pathToSave+".csv",sep = CSVDelimiter)
 
    
@@ -322,7 +328,10 @@ def benchmark(trainingSet,validationSet,testSet,
         
         for j,indexSet in enumerate(indexSets):
             for index in indexSet:
-                saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+fileNames[j]+"("+str(index)+")")
+                if dataSets[j].hasLabels:
+                    saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+fileNames[j]+"("+str(index)+")",dataSets[j].Labels()[index])
+                else:
+                    saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+fileNames[j]+"("+str(index)+")")
 
     #Save Performance Characteristics
     errorData = pd.DataFrame()

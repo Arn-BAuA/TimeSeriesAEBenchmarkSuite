@@ -165,7 +165,9 @@ def generateSet(numSamples,containsAnomalies,dimensions,**HPs):
 
     DataSet,IsAnomaly = RandomSampling(data,numSamples,HPs["SampleWindowSize"],includeTime = False,dateTimeColumn = "Time")
    
-    return DataBlock("Synthetic Sines",DataSet,dimensions,**HPs)
+    Block = DataBlock("Synthetic Sines",DataSet,dimensions,**HPs)
+    Block.setLabels(IsAnomaly)
+    return Block
 
 def generateData(dimensions,**hyperParameters):
 

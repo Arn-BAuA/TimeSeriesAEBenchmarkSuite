@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def plotErrors(rootDir,ax,errorName):
+def plotErrors(rootDir,ax,errorName,against="Epoch"):
     
     errorData = pd.read_csv(rootDir+"/Errors.csv",sep="\t")
 
@@ -16,7 +16,7 @@ def plotErrors(rootDir,ax,errorName):
     for column in errorData:
         if errorName in column:
             YLabels.append(column)
-        if "Epoch" in column:
+        if against in column:
             XLabel = column 
 
     for label in YLabels:
@@ -24,6 +24,7 @@ def plotErrors(rootDir,ax,errorName):
 
     ax.legend()
     ax.set_ylabel("Error")
+    ax.set_xlabel(against)
     ax.set_title("Error on Training and Validationset during training")
 
 if __name__ == "__main__":

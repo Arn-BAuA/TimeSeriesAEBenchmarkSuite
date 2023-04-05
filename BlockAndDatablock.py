@@ -47,6 +47,20 @@ class DataBlock(block):
         self.Dataset=Dataset
         self.Dimensions = Dimensions
 
+    #if you have labeled data or you are using a data generator, you can add
+    #the gound truth here. It should be an array of the same size as the set,
+    # containing an array of 0 and 1 where 0 means that its no anomaly and one
+    # means it is.
+    def setLabels(self,isAnomaly):
+        self.labels= isAnomaly
+        self.hasLabels = True
+
+    def hasLabels(self):
+        return self.hasLabels
+
+    def Labels(self):
+        return self.labels
+
     def Data(self):
         return self.Dataset
 
