@@ -1,5 +1,6 @@
 #!/bin/bash
 
+from Evaluation.Utility_Plot.General import selectInformativeDimensions
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -67,31 +68,7 @@ def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
     
     cmap=plt.get_cmap(CMapName,maxEpoch)
     
-    relevantDims = []
-
-    if trueData.shape[-1] > maxDimensions:
-        #determine the relevant dimensions.
-        ErrorPerDimension = np.sum(np.abs((trueData -AEGeneratedData[-1])),axis = 0)
-        AvgErrPerDimension = np.mean(ErrorPerDimension)
-        
-        numMaxErrorDims = int(float(maxDimensions)/3.0)
-        numMinErrorDims = numMaxErrorDims
-        numAvgErrorDims = numMaxErrorDims
-        
-        if maxDimensions%3 == 1:
-            numMaxErrorDims+=1
-        if maxDimensions%3 == 2:
-            numMaxErrorDims+=1
-            numAvgErrorDims+=1
-        
-        ErrorsSorted = np.argsort(ErrorPerDimension)
-        
-        relevantDims = ErrorsSorted[-numMaxErrorDims:]
-        relevantDims += ErrorsSorted[:numMinErrorDims]
-        relevantDims += np.argsort(np.abs(ErrorPerDimension-AvgErrPerDimension))[:numAvgErrors]
-    else:
-        relevantDims = np.arange(trueData.shape[-1])
-
+    relevantDims = selectInformativeDimensions(trueData,AEGeneratedData[-1],maxDimensions)
 
     def plotDataFrame(timeStamps,data,**plotArgs):
         firstPlotDone = False
