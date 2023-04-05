@@ -10,7 +10,7 @@ import os
 
 CMapName = "turbo" #Cmap for the plots.
 
-def plotMilestones(rootDir,ax,ExampleName):
+def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
     
     rootDir = rootDir[:-1]
 
@@ -24,7 +24,7 @@ def plotMilestones(rootDir,ax,ExampleName):
         if os.path.isdir(rootDir+"/Milestones/"+item):
             split = item.split(" ")
             
-            if split[0] == "Milestone": #Dir is indeed a dir containing milestones
+            if split[0] == "Milestone":
                 milestoneEpochs.append(int(split[2]))
                 milestoneFiles.append(rootDir+"/Milestones/"+item+"/"+ExampleName)
         
@@ -35,7 +35,7 @@ def plotMilestones(rootDir,ax,ExampleName):
 
     milestoneEpochs.append(int(split[0]))
     milestoneFiles.append(rootDir+"/Final Model/"+ExampleName)
-        
+
     AEGeneratedData = [0]*len(milestoneEpochs)
     
     for i in range(0,len(milestoneEpochs)):
@@ -66,18 +66,54 @@ def plotMilestones(rootDir,ax,ExampleName):
     maxEpoch = milestoneEpochs[-1]
     
     cmap=plt.get_cmap(CMapName,maxEpoch)
+    
+    relevantDims = []
+
+    if trueData.shape[-1] > maxDimensions:
+        #determine the relevant dimensions.
+        ErrorPerDimension = np.sum(np.abs((trueData -AEGeneratedData[-1])),axis = 0)
+        AvgErrPerDimension = np.mean(ErrorPerDimension)
+        
+        numMaxErrorDims = int(float(maxDimensions)/3.0)
+        numMinErrorDims = numMaxErrorDims
+        numAvgErrorDims = numMaxErrorDims
+        
+        if maxDimensions%3 == 1:
+            numMaxErrorDims+=1
+        if maxDimensions%3 == 2:
+            numMaxErrorDims+=1
+            numAvgErrorDims+=1
+        
+        ErrorsSorted = np.argsort(ErrorPerDimension)
+        
+        relevantDims = ErrorsSorted[-numMaxErrorDims:]
+        relevantDims += ErrorsSorted[:numMinErrorDims]
+        relevantDims += np.argsort(np.abs(ErrorPerDimension-AvgErrPerDimension))[:numAvgErrors]
+    else:
+        relevantDims = np.arange(trueData.shape[-1])
+
 
     def plotDataFrame(timeStamps,data,**plotArgs):
+        firstPlotDone = False
         if len(timeStamps) == 0:
             #no time stamps.
-            for i in range(0,data.shape[-1]):
+            for dim in relevantDims:
                 ax.plot(data[...,i],**plotArgs)
+                if not firstPlotDone:
+                    firstPlotDone = True
+                    if "label" in plotArgs:
+                        del plotArgs["label"]
         else:
             #with time stamps
-            for i in range(0,data.shape[-1]):
+            for dim in relevantDims:
                 ax.plot(x=timeStamps,y=data[...,i],**plotArgs)
+                if not firstPlotDone:
+                    firstPlotDone = True
+                    if "label" in plotArgs:
+                        del plotArgs["label"]
 
-    for i in range(0,len(AEGeneratedData)):
+
+    for dim in range(0,len(AEGeneratedData)):
         plotDataFrame(trueDataTimestamps,AEGeneratedData[i],color=cmap(milestoneEpochs[i]))
 
     plotDataFrame(trueDataTimestamps,trueData,color="k",linestyle="dashed",linewidth = 2,label="Original Data")

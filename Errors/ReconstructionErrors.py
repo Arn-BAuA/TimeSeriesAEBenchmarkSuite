@@ -12,17 +12,16 @@ class TorchErrorWrapper():
     def Name(self):
         return self.name
 
-    def calculate(self,model,Dataset):
-        Error = [0]*len(Dataset.Data())
-
-        for i in range(0,len(Dataset.Data())):
-            seq_true = Dataset.Data()[i]
-            seq_true = seq_true.to(self.device)
-            seq_pred = model(seq_true)
-
-            Error.append(self.errorFunction(seq_true,seq_pred).item())
+    def calculate(self,model,DataPoint):
+        Error = [0]*len(DataPoint)
         
-        return np.mean(Error) 
+
+        seq_true = DataPoint.to(self.device)
+        seq_pred = model(seq_true)
+
+        return self.errorFunction(seq_true,seq_pred).item()
+        
+        
 
 
 

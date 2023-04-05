@@ -132,7 +132,6 @@ def generate1DSines(dimension,BlendArray,time,**HPs):
     
     return sumOfSines
     
-
 def generateSet(numSamples,containsAnomalies,dimensions,**HPs):
     
     Time = np.linspace(0,HPs["Duration"],int(HPs["Duration"]/HPs["SampleTime"]))
@@ -165,7 +164,7 @@ def generateSet(numSamples,containsAnomalies,dimensions,**HPs):
         data["Dimension "+str(i+1)] = generate1DSines(i,BlendArray*HPs["AnomalyInDimension"][i],Time,**HPs)
 
     DataSet,IsAnomaly = RandomSampling(data,numSamples,HPs["SampleWindowSize"],includeTime = False,dateTimeColumn = "Time")
-    
+   
     return DataBlock("Synthetic Sines",DataSet,dimensions,**HPs)
 
 def generateData(dimensions,**hyperParameters):

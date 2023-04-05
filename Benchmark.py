@@ -22,6 +22,7 @@ import pandas as pd
 import time
 import numpy as np
 import subprocess
+import copy
 
 def createFolderWithTimeStamp(folderName):
     now = str(datetime.now())
@@ -43,7 +44,9 @@ def benchmark(trainingSet,validationSet,testSet,
               device,
               Errors = [], #Can be normal or downstream errors
               SaveAfterEpochs = 10,
-              n_exampleOutputs = 5,
+              n_exampleOutputsTraining   = [5,5,2],#NUmber of Examples that show [high Error, low Error,average Error]
+              n_exampleOutputsValidation = [5,5,2],
+              n_exampleOutputsTest       = [5,5,2],
               create_output = True, #for test purposes
               defaultError = TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device)):
     
@@ -135,42 +138,6 @@ def benchmark(trainingSet,validationSet,testSet,
         for key in Errors:
             ErrorColumnDict[key][epoch] = Errors[key]
 
-    #Creates a folder with the modelweights and some example inputs and modeloutputs
-    def createModelSnapshot(model,folderToSave,nameOfSnapshot):
-        os.mkdir(folderToSave+nameOfSnapshot)
-        snapshotDir = folderToSave+nameOfSnapshot+"/"
-
-        torch.save(model.state_dict(),snapshotDir+"model.pth")
-       
-        def saveExample(seq_true,pathToSave):
-            seq_true = seq_true.to(device)
-            seq_pred = model(seq_true)
-            
-            seq_true = seq_true.to("cpu")
-            seq_pred = seq_pred.to("cpu")
-            
-
-            tr = pd.DataFrame(seq_true.detach().numpy())
-            pr = pd.DataFrame(seq_pred.detach().numpy())
-
-            trColumnNames = []
-            prColumnNames = []
-
-            for i in range(0,trainingSet.Dimension()):
-                trColumnNames.append("input_Dimension_"+str(i))
-                prColumnNames.append("output_Dimension_"+str(i))
-            
-            tr=tr.set_axis(trColumnNames,axis=1)
-            pr=pr.set_axis(prColumnNames,axis=1)
-
-            
-            result = pd.concat([tr,pr],axis=1)
-            result.to_csv(pathToSave+".csv",sep = CSVDelimiter)
-
-        for i in range(0,n_exampleOutputs):
-            saveExample(trainingSet.Data()[i],snapshotDir+"TrainingSetExample"+str(i+1))
-            saveExample(validationSet.Data()[i],snapshotDir+"ValidationSetExample"+str(i+1))
-            saveExample(testSet.Data()[i],snapshotDir+"TestSetExample"+str(i+1))
 
     #########################################
     #   Begin of the Training...            #
@@ -182,6 +149,20 @@ def benchmark(trainingSet,validationSet,testSet,
 
     TotalTrainingWallTime = 0
     TotalTrainingCPUTime = 0
+    
+    TrainingErrorOnFinalEpoch = [] #These are used to determine the examples that will be displayed..
+    ValidationErrorOnFinalEpoch = [] 
+    
+    snapshotFolders = []
+    snapshotModelWeights = []
+
+    #Creates a folder with the modelweights and some example inputs and modeloutputs
+    def createModelSnapshot(model,folderToSave,nameOfSnapshot):
+        os.mkdir(folderToSave+nameOfSnapshot)
+        snapshotDir = folderToSave+nameOfSnapshot+"/"
+        torch.save(model.state_dict(),snapshotDir+"model.pth")
+        
+        return snapshotDir
 
     for epoch in range(0,n_epochs+1):
         
@@ -206,18 +187,38 @@ def benchmark(trainingSet,validationSet,testSet,
         else:
             WallTime = 0
             CPUTime = 0
+        
+        #################################
+        ## # # Calculating the Errors
+        ####
 
         EvaluatedErrors = {}
 
         for err in Errors:
-            EvaluatedErrors[err.Name()+TSPostfixKey] = err.calculate(model, trainingSet)
-            EvaluatedErrors[err.Name()+VSPostfixKey] = err.calculate(model, validationSet) 
+
+            tsError = [0]*len(trainingSet.Data())
+            for i,DataPoint in enumerate(trainingSet.Data()):
+                tsError[i] = err.calculate(model,DataPoint)
+            
+            EvaluatedErrors[err.Name()+TSPostfixKey] = np.mean(tsError)
+            
+            vsError = [0]*len(validationSet.Data())
+            for i,DataPoint in enumerate(validationSet.Data()):
+                vsError[i] = err.calculate(model,DataPoint)
+            
+            EvaluatedErrors[err.Name()+VSPostfixKey] = np.mean(vsError)
+            
+            if epoch == n_epochs:
+                #Final Epoch. The errors calculated here will be used to choose the examples for the snapshots...
+                TrainingErrorOnFinalEpoch = tsError
+                ValidationErrorOnFinalEpoch = vsError
+
         
         TotalTrainingWallTime += WallTime
         TotalTrainingCPUTime += CPUTime
 
         #Errors[0] is always the default error
-        print(f"Epoch: {epoch+1} , Train.Err.: {EvaluatedErrors[Errors[0].Name()+TSPostfixKey]} , Val.Err.: {EvaluatedErrors[Errors[0].Name()+VSPostfixKey]}")
+        print(f"Epoch: {epoch} , Train.Err.: {EvaluatedErrors[Errors[0].Name()+TSPostfixKey]} , Val.Err.: {EvaluatedErrors[Errors[0].Name()+VSPostfixKey]}")
         
         writeToErrors(epoch,EvaluatedErrors,TotalTrainingWallTime,TotalTrainingCPUTime)
         
@@ -226,18 +227,102 @@ def benchmark(trainingSet,validationSet,testSet,
         
         if epoch%SaveAfterEpochs == 0 and create_output:
             print(f"Logged Milestone for {epoch} epochs.")
-            createModelSnapshot(model,MilestonePath,"Milestone at "+str(epoch)+" Epochs")
+            snapshotFolder = createModelSnapshot(model,MilestonePath,"Milestone at "+str(epoch)+" Epochs")
+            snapshotFolders.append(snapshotFolder)
+            snapshotModelWeights.append(copy.deepcopy(model.state_dict()))
 
+    
     trainer.finalizeTraining(model)
     
     #Save Trained Model
     if create_output:
-        createModelSnapshot(model,resultFolder,"Final Model")
+        snapshotFolder = createModelSnapshot(model,resultFolder,"Final Model")
+        snapshotFolders.append(snapshotFolder)
+        snapshotModelWeights.append(model.state_dict().copy())
     
 
     #Benchmark finished model:
     #What is the runtime for an average evaluation?
 
+    ###################################
+    # # ## #### # ### #
+    # Creating the example evaluations
+    #
+    #Snapshot Examples are selected based on the performance of the model on the training, test and validation set.
+ 
+    def saveExample(model,seq_true,pathToSave):
+        seq_true = seq_true.to(device)
+        seq_pred = model(seq_true)
+            
+        seq_true = seq_true.to("cpu")
+        seq_pred = seq_pred.to("cpu")
+            
+
+        tr = pd.DataFrame(seq_true.detach().numpy())
+        pr = pd.DataFrame(seq_pred.detach().numpy())
+
+        trColumnNames = []
+        prColumnNames = []
+
+        for i in range(0,trainingSet.Dimension()):
+            trColumnNames.append("input_Dimension_"+str(i))
+            prColumnNames.append("output_Dimension_"+str(i))
+            
+        tr=tr.set_axis(trColumnNames,axis=1)
+        pr=pr.set_axis(prColumnNames,axis=1)
+
+            
+        result = pd.concat([tr,pr],axis=1)
+        result.to_csv(pathToSave+".csv",sep = CSVDelimiter)
+
+   
+    def selectExamples(DataSet,Errors,nExampleMaxError,nExampleMinError,nExampleAVGError):
+        #Idea: Select some examples with average errors (normal Performance)
+        # and some with high or low errors
+        
+        errorIndicesSorted = np.argsort(Errors)
+        indexLargest = errorIndicesSorted[-nExampleMaxError:]
+        indexSmallest = errorIndicesSorted[:nExampleMinError]
+
+        average = np.abs(Errors-np.mean(Errors))
+        indexAverage = np.argsort(average)[:nExampleAVGError]
+
+        return indexLargest,indexSmallest,indexAverage
+
+    TSMaxErr,TSMinErr,TSAVGErr = selectExamples(trainingSet,TrainingErrorOnFinalEpoch,*n_exampleOutputsTraining)
+    VSMaxErr,VSMinErr,VSAVGErr = selectExamples(validationSet,ValidationErrorOnFinalEpoch,*n_exampleOutputsValidation)
+    
+    indexSets = [
+            TSMaxErr,
+            TSMinErr,
+            TSAVGErr,
+            VSMaxErr,
+            VSMinErr,
+            VSAVGErr
+            ]
+    fileNames = [
+            "Training Set Example with High Error ",
+            "Training Set Example with Low Error ",
+            "Training Set Example with Average Error ",
+            "Validation Set Example with High Error ",
+            "Validation Set Example with Low Error ",
+            "Validation Set Example with Average Error ",
+            ]
+    dataSets = [
+            trainingSet,
+            trainingSet,
+            trainingSet,
+            validationSet,
+            validationSet,
+            validationSet,
+            ]
+
+    for i in range(0,len(snapshotFolders)):
+        model.load_state_dict(snapshotModelWeights[i])
+        
+        for j,indexSet in enumerate(indexSets):
+            for index in indexSet:
+                saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+fileNames[j]+"("+str(index)+")")
 
     #Save Performance Characteristics
     errorData = pd.DataFrame()
