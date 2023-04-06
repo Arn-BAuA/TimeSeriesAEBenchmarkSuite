@@ -128,6 +128,7 @@ def benchmark(trainingSet,validationSet,testSet,
     WallTKey = "WallTime in s"
     TSPostfixKey = " on Training Set"
     VSPostfixKey = " on Validation Set"
+    TestPostfixKey = " on Test Set"
 
     ErrorColumnDict = {}
     
@@ -136,6 +137,7 @@ def benchmark(trainingSet,validationSet,testSet,
     for err in Errors:
         ErrorColumnDict[err.Name()+TSPostfixKey] = [0]*(n_epochs+1)
         ErrorColumnDict[err.Name()+VSPostfixKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[err.Name()+TestPostfixKey] = [0]*(n_epochs+1)
     
     ErrorColumnDict[CPUTKey] = [0]*(n_epochs+1)
     ErrorColumnDict[WallTKey] = [0]*(n_epochs+1)
@@ -162,6 +164,7 @@ def benchmark(trainingSet,validationSet,testSet,
     
     TrainingErrorOnFinalEpoch = [] #These are used to determine the examples that will be displayed..
     ValidationErrorOnFinalEpoch = [] 
+    TestErrorOnFinalEpoch = [] 
     
     snapshotFolders = []
     snapshotModelWeights = []
@@ -218,10 +221,19 @@ def benchmark(trainingSet,validationSet,testSet,
             
             EvaluatedErrors[err.Name()+VSPostfixKey] = np.mean(vsError)
             
+            TestError = [0]*len(testSet.Data())
+            for i,DataPoint in enumerate(testSet.Data()):
+                TestError[i] = err.calculate(model,DataPoint)
+            
+            EvaluatedErrors[err.Name()+TestPostfixKey] = np.mean(TestError)
+            
+            
+
             if epoch == n_epochs:
                 #Final Epoch. The errors calculated here will be used to choose the examples for the snapshots...
                 TrainingErrorOnFinalEpoch = tsError
                 ValidationErrorOnFinalEpoch = vsError
+                TestErrorOnFinalEpoch = TestError
 
         
         TotalTrainingWallTime += WallTime
@@ -307,14 +319,18 @@ def benchmark(trainingSet,validationSet,testSet,
 
     TSMaxErr,TSMinErr,TSAVGErr = selectExamples(trainingSet,TrainingErrorOnFinalEpoch,*n_exampleOutputsTraining)
     VSMaxErr,VSMinErr,VSAVGErr = selectExamples(validationSet,ValidationErrorOnFinalEpoch,*n_exampleOutputsValidation)
-    
+    TestMaxErr,TestMinErr,TestAVGErr = selectExamples(testSet,TestErrorOnFinalEpoch,*n_exampleOutputsTest)
+
     indexSets = [
             TSMaxErr,
             TSMinErr,
             TSAVGErr,
             VSMaxErr,
             VSMinErr,
-            VSAVGErr
+            VSAVGErr,
+            TestMaxErr,
+            TestMinErr,
+            TestAVGErr,
             ]
     fileNames = [
             "Training Set Example with High Error ",
@@ -323,6 +339,9 @@ def benchmark(trainingSet,validationSet,testSet,
             "Validation Set Example with High Error ",
             "Validation Set Example with Low Error ",
             "Validation Set Example with Average Error ",
+            "Test Set Example with High Error ",
+            "Test Set Example with Low Error ",
+            "Test Set Example with Average Error ",
             ]
     dataSets = [
             trainingSet,
@@ -331,6 +350,9 @@ def benchmark(trainingSet,validationSet,testSet,
             validationSet,
             validationSet,
             validationSet,
+            testSet,
+            testSet,
+            testSet,
             ]
 
     for i in range(0,len(snapshotFolders)):
