@@ -191,7 +191,7 @@ def benchmark(trainingSet,validationSet,testSet,
             #### # ##### ## ## # ###### ## #### ## ## # ###
             ###### ######### # ##### ## ### #
             WallTime = endTime - startTime
-            CPUTime = endCPUTime - startTime
+            CPUTime = endCPUTime - startCPUTime
         else:
             WallTime = 0
             CPUTime = 0
