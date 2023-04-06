@@ -25,7 +25,7 @@ def plotErrors(rootDir,ax,errorName,against="Epoch"):
     ax.legend()
     ax.set_ylabel("Error")
     ax.set_xlabel(against)
-    ax.set_title("Error on Training and Validationset during training")
+    ax.set_title(errorName+" on the Sets during training")
     
 
 if __name__ == "__main__":
