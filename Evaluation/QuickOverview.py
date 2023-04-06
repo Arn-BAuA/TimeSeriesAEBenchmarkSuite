@@ -7,6 +7,8 @@ from Evaluation.Utility_Plot.ExamplePlotter import plotExample
 import os
 import glob
 import json
+from Evaluation.HTMLSummary import createHTMLSummary
+
 
 #################################
 #
@@ -46,7 +48,8 @@ def plotOverview(rootDir):
         file = file.split("/")[-1]
         createPlot(pngDir+"Milestones for "+file,pdfDir+"Milestones for "+file,plotMilestones,rootDir,ExampleName=file)
         createPlot(pngDir+"Data in "+file,pdfDir+"Data in "+file,plotExample,rootDir,ExampleName=file)
-    
+        
+    createHTMLSummary(rootDir)
 
 if __name__ == "__main__":
 

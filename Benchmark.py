@@ -105,11 +105,6 @@ def benchmark(trainingSet,validationSet,testSet,
     
     
 
-    #Save Metadata for this run
-    if create_output:
-        with open(resultFolder+"HyperParametersAndMetadata.json","w") as f:
-            json.dump(runInformation,f,default=str,indent = 4)
-    
     #Setting up files and folders to write to in the training:
     MilestonePath = resultFolder+"Milestones" #Every n epochs, a snapshot of the model and some example evaluations are stored here
     
@@ -321,6 +316,20 @@ def benchmark(trainingSet,validationSet,testSet,
     VSMaxErr,VSMinErr,VSAVGErr = selectExamples(validationSet,ValidationErrorOnFinalEpoch,*n_exampleOutputsValidation)
     TestMaxErr,TestMinErr,TestAVGErr = selectExamples(testSet,TestErrorOnFinalEpoch,*n_exampleOutputsTest)
 
+    SelectedExamples = {
+            "Training Set Example with High Error ":TSMaxErr,
+            "Training Set Example with Low Error ":TSMinErr,
+            "Training Set Example with Average Error ":TSAVGErr,
+            "Validation Set Example with High Error ":VSMaxErr,
+            "Validation Set Example with Low Error ":VSMinErr,
+            "Validation Set Example with Average Error ":VSAVGErr,
+            "Test Set Example with High Error ":TestMaxErr,
+            "Test Set Example with Low Error ":TestMinErr,
+            "Test Set Example with Average Error ":TestAVGErr,
+            }
+
+    runInformation["Selected Examples"] = SelectedExamples
+
     indexSets = [
             TSMaxErr,
             TSMinErr,
@@ -358,12 +367,12 @@ def benchmark(trainingSet,validationSet,testSet,
     for i in range(0,len(snapshotFolders)):
         model.load_state_dict(snapshotModelWeights[i])
         
-        for j,indexSet in enumerate(indexSets):
-            for index in indexSet:
+        for j,key in enumerate(SelectedExamples):
+            for index in SelectedExamples[key]:
                 if dataSets[j].hasLabels:
-                    saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+fileNames[j]+"("+str(index)+")",dataSets[j].Labels()[index])
+                    saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+key+"("+str(index)+")",dataSets[j].Labels()[index])
                 else:
-                    saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+fileNames[j]+"("+str(index)+")")
+                    saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+key+"("+str(index)+")")
 
     #Save Performance Characteristics
     errorData = pd.DataFrame()
@@ -374,4 +383,9 @@ def benchmark(trainingSet,validationSet,testSet,
     if create_output:
         errorData.to_csv(resultFolder+"Errors.csv",sep=CSVDelimiter)
 
+    #Save Metadata for this run
+    if create_output:
+        with open(resultFolder+"HyperParametersAndMetadata.json","w") as f:
+            json.dump(runInformation,f,default=str,indent = 4)
+    
     return resultFolder
