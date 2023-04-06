@@ -218,7 +218,7 @@ def benchmark(trainingSet,validationSet,testSet,
         TotalTrainingCPUTime += CPUTime
 
         #Errors[0] is always the default error
-        print(f"Epoch: {epoch} , Train.Err.: {EvaluatedErrors[Errors[0].Name()+TSPostfixKey]} , Val.Err.: {EvaluatedErrors[Errors[0].Name()+VSPostfixKey]}")
+        print(f"Epoch: {epoch} , Train.Err.: {np.round(EvaluatedErrors[Errors[0].Name()+TSPostfixKey],2)} , Val.Err.: {np.round(EvaluatedErrors[Errors[0].Name()+VSPostfixKey],2)}")
         
         writeToErrors(epoch,EvaluatedErrors,TotalTrainingWallTime,TotalTrainingCPUTime)
         
@@ -273,11 +273,11 @@ def benchmark(trainingSet,validationSet,testSet,
         tr=tr.set_axis(trColumnNames,axis=1)
         pr=pr.set_axis(prColumnNames,axis=1)
 
-            
-        result = pd.concat([tr,pr],axis=1)
-        
-        if not len(labels) == 0:
-            result["Is Anomaly"] = labels
+        tr.reset_index(drop=True,inplace=True)    
+        pr.reset_index(drop=True,inplace=True)    
+        labels.reset_index(drop=True,inplace=True)    
+
+        result = pd.concat([tr,labels.to_frame(),pr],axis=1)
 
         result.to_csv(pathToSave+".csv",sep = CSVDelimiter)
 

@@ -2,6 +2,8 @@ import glob
 import sys
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
+from Evaluation.Utility_Plot.General import scrapeDataFrame
 
 ###
 # Script to plot the examples that where taken during the snapshots
@@ -10,21 +12,12 @@ import pandas as pd
 def plotExample(rootDir,ax,ExampleName):
 
     data = pd.read_csv(rootDir+"/Final Model/"+ExampleName,sep='\t')
+    hasTimeStamps,dataTimeStamps,hasAnomalyData,anomalyData,dataFound,dataValues = scrapeDataFrame(data,["input"])
+    dataValues = dataValues[0]
+    #########################
+    # Plotting the Values
 
-    dataTimeStamps = []
-    dataValues = []
-
-    for column in data:
-        if "time" in column:
-            dataTimeStamps = data[column].to_numpy()
-            data = data.drop(columns=column)
-            continue
-        if not "input" in column:
-            data = data.drop(columns=column)
-
-    dataValues = data.to_numpy()
-
-    if len(dataTimeStamps) == 0:
+    if not hasTimeStamps:
         #no time stamps
         for i in range(0,dataValues.shape[-1]):
             ax.plot(dataValues[...,i],label="Dim. "+str(i))
@@ -33,6 +26,21 @@ def plotExample(rootDir,ax,ExampleName):
         for i in range(0,dataValues.shape[-1]):
             ax.plot(x=dataTimeStamps,y=dataValues[...,i],label="Dim. "+str(i))
     
+    #########################
+    # Shading values with anomalous data...
+    
+    if hasAnomalyData:
+        oldYLims = ax.get_ylim()
+        
+        if hasTimeStamps:
+            xVals = dataTimeStamps    
+        else:
+            xVals = np.arange(len(anomalyData))
+
+        ax.fill_between(xVals,y1=+1e9,y2=-1e9,where=anomalyData > 0,facecolor = "black",alpha=.2)
+        
+        ax.set_ylim(oldYLims)
+
     ax.legend()
     ax.set_xlabel("Time")
     ax.set_ylabel("Values")

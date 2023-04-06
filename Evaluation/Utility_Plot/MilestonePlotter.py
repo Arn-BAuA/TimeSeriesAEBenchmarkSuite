@@ -1,6 +1,6 @@
 #!/bin/bash
 
-from Evaluation.Utility_Plot.General import selectInformativeDimensions
+from Evaluation.Utility_Plot.General import selectInformativeDimensions,scrapeDataFrame
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -47,19 +47,15 @@ def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
             if not "output" in column:
                 data=data.drop(columns=column)
 
-        AEGeneratedData[i] = data.to_numpy()
+        outputFound,OutputData = scrapeDataFrame(data,["output"],ignoreTime = True,ignoreLabels=True)
+        AEGeneratedData[i] = OutputData[0]
+    
 
     #Loading true data...
     data = pd.read_csv(milestoneFiles[0],sep='\t')
-    
-    for column in data:
-        if "time" in column:
-            trueDataTimestamps = data[column].to_numpy()
-            data=data.drop(columns=column)
-            continue
-        if not "input" in column:
-            data=data.drop(columns=column)
-    trueData = data.to_numpy()
+   
+    hasTimeStamps,trueDataTimestamps,hasLabels,labels,hasTrueData,trueData = scrapeDataFrame(data,["input"]) 
+    trueData = trueData[0]
 
     ###########################################
     #       Data Loaded, now plot             #
@@ -95,6 +91,21 @@ def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
 
     plotDataFrame(trueDataTimestamps,trueData,color="k",linestyle="dashed",linewidth = 2,label="Original Data")
     
+    
+    if hasLabels:
+        oldYLims = ax.get_ylim()
+        
+        if hasTimeStamps:
+            xVals = trueDataTimestamps 
+        else:
+            xVals = np.arange(len(labels))
+
+        ax.fill_between(xVals,y1=+1e9,y2=-1e9,where=labels > 0,facecolor = "black",alpha=.2)
+        
+        ax.set_ylim(oldYLims)
+
+
+
     ax.legend()
 
     #plotting color bar

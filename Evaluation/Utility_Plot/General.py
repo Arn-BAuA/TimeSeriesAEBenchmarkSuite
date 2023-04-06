@@ -32,3 +32,47 @@ def selectInformativeDimensions(Data,Prediction,maxDimensions):
         relevantDims = np.arange(Data.shape[-1])
 
     return relevantDims
+
+
+##################
+# Method for scraping thee relevant data from the loaded
+# dataframes
+def scrapeDataFrame(data,relevantCols,ignoreTime = False,ignoreLabels = False):
+
+    relevantData = [0]*len(relevantCols)
+    DataFound = [False]*len(relevantCols)
+    if not ignoreTime:
+        hasTimeStamps = False
+        dataTimeStamps = []
+    if not ignoreLabels:
+        hasLabels = False
+        labels = []
+
+    for column in data:
+        if not ignoreTime and "time" in column:
+            dataTimeStamps = data[column].to_numpy()
+            hasTimeStamps = True
+            continue
+        if not ignoreLabels and "Anomaly" in column or "anomaly" in column:
+            labels = data[column].to_numpy()
+            hasLabels = True
+            continue
+        for i,identifier in enumerate(relevantCols):
+            if identifier in column:
+                if DataFound[i]:
+                    relevantData[i][column] = data[column]
+                else:
+                    relevantData[i] = data[column].to_frame()
+                    DataFound[i] = True
+                continue
+    
+    for i in range(0,len(relevantData)):
+        relevantData[i] = relevantData[i].to_numpy()
+    
+    toReturn = [DataFound,relevantData]
+    if not ignoreLabels:
+        toReturn = [hasLabels,labels]+toReturn
+    if not ignoreTime:
+        toReturn = [hasTimeStamps,dataTimeStamps] + toReturn
+
+    return (*toReturn,)
