@@ -23,6 +23,7 @@ import time
 import numpy as np
 import subprocess
 import copy
+import shutil
 
 def createFolderWithTimeStamp(folderName):
     now = str(datetime.now())
@@ -44,6 +45,7 @@ def benchmark(trainingSet,validationSet,testSet,
               device,
               Errors = [], #Can be normal or downstream errors
               SaveAfterEpochs = 10,
+              inplace=True,
               n_exampleOutputsTraining   = [5,5,2],#NUmber of Examples that show [high Error, low Error,average Error]
               n_exampleOutputsValidation = [5,5,2],
               n_exampleOutputsTest       = [5,5,2],
@@ -54,7 +56,15 @@ def benchmark(trainingSet,validationSet,testSet,
 
     resultFolder = pathToSave
     if create_output:
-        resultFolder = pathForResults+createFolderWithTimeStamp(resultFolder)
+        if inplace:
+            resultFolder = pathForResults + resultFolder
+            
+            if os.path.exists(resultFolder):
+                shutil.rmtree(resultFolder)
+
+            os.mkdir(resultFolder)
+        else:
+            resultFolder = pathForResults+createFolderWithTimeStamp(resultFolder)
     
     resultFolder += "/"
     ####################################
