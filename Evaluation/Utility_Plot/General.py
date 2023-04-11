@@ -34,6 +34,38 @@ def selectInformativeDimensions(Data,Prediction,maxDimensions):
     return relevantDims
 
 
+def loadHistogramData(errorData,errorName,setName):
+
+    Errors = {}
+    
+    maxError = -1e9
+    minError = 1e9
+    maxEpoch = 0
+
+    for column in errorData:
+        if errorName in column:
+            #Milestone Extrahieren und als Key...
+            Epoch = int(column.split(" ")[1])
+            Errors[Epoch] = errorData[column].to_numpy()
+            
+            if Epoch != 0:
+                localMax = np.max(Errors[Epoch])
+                if localMax > maxError:
+                    maxError = localMax
+                localMin = np.min(Errors[Epoch])
+                if localMin < minError:
+                    minError = localMin
+            if Epoch > maxEpoch:
+                maxEpoch = Epoch
+    
+    Errors[0] = Errors[0][np.where((Errors[0] >= minError) & (Errors[0]<= maxError))]
+    
+    if len(Errors[0]) == 0:
+        del Errors[0]
+
+    return Errors,maxError,minError,maxEpoch
+
+
 ##################
 # Method for scraping thee relevant data from the loaded
 # dataframes

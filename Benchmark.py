@@ -124,6 +124,7 @@ def benchmark(trainingSet,validationSet,testSet,
     TSPostfixKey = " on Training Set"
     VSPostfixKey = " on Validation Set"
     TestPostfixKey = " on Test Set"
+    ErrorKey = " Delta"
 
     ErrorColumnDict = {}
     
@@ -133,6 +134,9 @@ def benchmark(trainingSet,validationSet,testSet,
         ErrorColumnDict[err.Name()+TSPostfixKey] = [0]*(n_epochs+1)
         ErrorColumnDict[err.Name()+VSPostfixKey] = [0]*(n_epochs+1)
         ErrorColumnDict[err.Name()+TestPostfixKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[err.Name()+TSPostfixKey+ErrorKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[err.Name()+VSPostfixKey+ErrorKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[err.Name()+TestPostfixKey+ErrorKey] = [0]*(n_epochs+1)
     
     ErrorColumnDict[CPUTKey] = [0]*(n_epochs+1)
     ErrorColumnDict[WallTKey] = [0]*(n_epochs+1)
@@ -163,6 +167,10 @@ def benchmark(trainingSet,validationSet,testSet,
     
     snapshotFolders = []
     snapshotModelWeights = []
+    
+    ErrorDistributionTS = pd.DataFrame()
+    ErrorDistributionVS = pd.DataFrame()
+    ErrorDistributionTest = pd.DataFrame()
 
     #Creates a folder with the modelweights and some example inputs and modeloutputs
     def createModelSnapshot(model,folderToSave,nameOfSnapshot):
@@ -209,26 +217,33 @@ def benchmark(trainingSet,validationSet,testSet,
                 tsError[i] = err.calculate(model,DataPoint)
             
             EvaluatedErrors[err.Name()+TSPostfixKey] = np.mean(tsError)
+            EvaluatedErrors[err.Name()+TSPostfixKey+ErrorKey] = np.std(tsError)
             
             vsError = [0]*len(validationSet.Data())
             for i,DataPoint in enumerate(validationSet.Data()):
                 vsError[i] = err.calculate(model,DataPoint)
             
             EvaluatedErrors[err.Name()+VSPostfixKey] = np.mean(vsError)
+            EvaluatedErrors[err.Name()+VSPostfixKey+ErrorKey] = np.std(vsError)
             
             TestError = [0]*len(testSet.Data())
             for i,DataPoint in enumerate(testSet.Data()):
                 TestError[i] = err.calculate(model,DataPoint)
             
             EvaluatedErrors[err.Name()+TestPostfixKey] = np.mean(TestError)
+            EvaluatedErrors[err.Name()+TestPostfixKey+ErrorKey] = np.std(TestError)
             
-            
+            if epoch%SaveAfterEpochs == 0:
+                ErrorDistributionTS["Epoch "+str(epoch)+" "+err.Name()] = tsError
+                ErrorDistributionVS["Epoch "+str(epoch)+" "+err.Name()] = vsError
+                ErrorDistributionTest["Epoch "+str(epoch)+" "+err.Name()] = TestError
 
-            if epoch == n_epochs:
-                #Final Epoch. The errors calculated here will be used to choose the examples for the snapshots...
-                TrainingErrorOnFinalEpoch = tsError
-                ValidationErrorOnFinalEpoch = vsError
-                TestErrorOnFinalEpoch = TestError
+            if err.Name() == defaultError.Name():
+                if epoch == n_epochs:
+                    #Final Epoch. The errors calculated here will be used to choose the examples for the snapshots...
+                    TrainingErrorOnFinalEpoch = tsError
+                    ValidationErrorOnFinalEpoch = vsError
+                    TestErrorOnFinalEpoch = TestError
 
         
         TotalTrainingWallTime += WallTime
@@ -247,6 +262,7 @@ def benchmark(trainingSet,validationSet,testSet,
             snapshotFolder = createModelSnapshot(model,MilestonePath,"Milestone at "+str(epoch)+" Epochs")
             snapshotFolders.append(snapshotFolder)
             snapshotModelWeights.append(copy.deepcopy(model.state_dict()))
+            
 
     
     trainer.finalizeTraining(model)
@@ -256,7 +272,9 @@ def benchmark(trainingSet,validationSet,testSet,
         snapshotFolder = createModelSnapshot(model,resultFolder,"Final Model")
         snapshotFolders.append(snapshotFolder)
         snapshotModelWeights.append(model.state_dict().copy())
-    
+        ErrorDistributionTS.to_csv(resultFolder+"TrainingSetDistribution.csv",sep="\t") 
+        ErrorDistributionVS.to_csv(resultFolder+"ValidationSetDistribution.csv",sep="\t") 
+        ErrorDistributionTest.to_csv(resultFolder+"TestSetDistribution.csv",sep="\t") 
 
     #Benchmark finished model:
     #What is the runtime for an average evaluation?

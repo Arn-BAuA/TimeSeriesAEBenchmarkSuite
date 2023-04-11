@@ -212,12 +212,12 @@ def generateData(dimensions,**hyperParameters):
         "AnomalyDuration":   2,
         "SampleTime":               0.2,
         "AnomalyChance":            0.006,
-        "Duration":                 10000,#duration of the timeseries in the dataset 
+        "Duration":                 2000,#duration of the timeseries in the dataset 
         "RandomSeed":               1,
 
 
-        "TrainingSetSize": 1000,
-        "ValidationSetSize":100,
+        "TrainingSetSize": 200,
+        "ValidationSetSize":50,
         "TestSetSize" : 30,
         "SampleWindowSize":150,
     }

@@ -30,7 +30,7 @@ resultFolder = benchmark(trainingSet,
                 testSet,
                 model,
                 trainer,
-                n_epochs=20,
+                n_epochs=40,
                 pathToSave=pathToSave,
                 device = device)
 

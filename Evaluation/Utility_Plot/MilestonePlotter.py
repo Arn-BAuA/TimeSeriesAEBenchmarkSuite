@@ -100,7 +100,7 @@ def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
         else:
             xVals = np.arange(len(labels))
 
-        ax.fill_between(xVals,y1=+1e9,y2=-1e9,where=labels > 0,facecolor = "black",alpha=.2)
+        ax.fill_between(xVals,y1=oldYLims[1],y2=oldYLims[0],where=labels > 0,facecolor = "black",alpha=.2)
         
         ax.set_ylim(oldYLims)
 

@@ -37,7 +37,7 @@ def plotExample(rootDir,ax,ExampleName):
         else:
             xVals = np.arange(len(anomalyData))
 
-        ax.fill_between(xVals,y1=+1e9,y2=-1e9,where=anomalyData > 0,facecolor = "black",alpha=.2)
+        ax.fill_between(xVals,y1=oldYLims[1],y2=oldYLims[0],where=anomalyData > 0,facecolor = "black",alpha=.2)
         
         ax.set_ylim(oldYLims)
 
