@@ -27,19 +27,9 @@ def plotExampleLocation(rootDir,ax,errorName,setName,exampleIndex):
             )
 
     x = Errors[maxEpoch][exampleIndex]
-    height = max(n)
-
-    ax.arrow(x=x,
-             y=height*0.5 + 0.5,
-             dx=0,
-             dy=-height*0.5,
-             linewidth = 2,
-             length_includes_head=True,
-             head_width = 0.1*height,
-             head_length = 0.1*height,
-             label="Example "+str(exampleIndex)
-             )
-
+    ax.scatter(x,0.5,marker='x',label="Example "+str(exampleIndex))
+    
+    ax.legend()
     ax.set_ylabel("#Samples")
     ax.set_xlabel(errorName)
     ax.set_title("Distribution "+errorName+" on "+setName)

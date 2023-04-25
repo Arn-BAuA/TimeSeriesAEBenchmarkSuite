@@ -44,7 +44,7 @@ def plotExample(rootDir,ax,ExampleName):
     ax.legend()
     ax.set_xlabel("Time")
     ax.set_ylabel("Values")
-    ax.set_title("Data of "+ExampleName)
+    ax.set_title("Data of "+ExampleName[:-4])
 
 if __name__ == "__main__":
 

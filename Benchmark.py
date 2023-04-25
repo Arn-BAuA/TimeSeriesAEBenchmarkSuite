@@ -46,9 +46,9 @@ def benchmark(trainingSet,validationSet,testSet,
               Errors = [], #Can be normal or downstream errors
               SaveAfterEpochs = 10,
               inplace=True,
-              n_exampleOutputsTraining   = [5,5,2],#NUmber of Examples that show [high Error, low Error,average Error]
-              n_exampleOutputsValidation = [5,5,2],
-              n_exampleOutputsTest       = [5,5,2],
+              n_exampleOutputsTraining   = [2,2,1],#NUmber of Examples that show [high Error, low Error,average Error]
+              n_exampleOutputsValidation = [2,2,1],
+              n_exampleOutputsTest       = [2,2,1],
               create_output = True, #for test purposes
               defaultError = TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device)):
     

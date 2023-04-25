@@ -26,7 +26,7 @@ def plotMilestoneHistograms(rootDir,ax,errorName,setName):
                 histtype=u"step",
                 density=True,
                 color=cmap(epoch),
-                linewidth = 2
+                #linewidth = 2
                 )
 
     norm = mpl.colors.Normalize(vmin = 0, vmax = maxEpoch)

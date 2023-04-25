@@ -117,7 +117,7 @@ def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
     ax.set_xlabel("Time")
     ax.set_ylabel("Data")
 
-    ax.set_title("Output of the AE VS original Data")
+    ax.set_title("Output of the Model VS Original Data")
 
 if __name__ == "__main__":
 
