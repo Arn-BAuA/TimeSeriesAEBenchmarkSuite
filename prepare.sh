@@ -39,6 +39,7 @@ rm heartbeat.zip
 
 #SMD
 svn export https://github.com/NetManAIOps/OmniAnomaly/trunk/ServerMachineDataset
+mv ServerMachineDataset SMD
 
 #Smap And MSL (Code "inspired" by OmniAnomaly Repo: https://github.com/NetManAIOps/OmniAnomaly)
 wget https://s3-us-west-2.amazonaws.com/telemanom/data.zip
@@ -64,6 +65,5 @@ kaggle datasets download behrad3d/nasa-cmaps
 mkdir Engine
 unzip nasa-cmaps.zip -d Engine
 rm nasa-cmaps.zip
-
 
 cd currentPath
