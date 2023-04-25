@@ -1,38 +1,32 @@
 #!/bin/python
 
-from AEModels.FeedForward import Model as ModelClass
+from AEModels.FeedForward import Model as FeedForwardAE
+from SetWrappers.UCRDataSet import loadData as DataSet
+from Trainers.SingleInstanceTrainer import Trainer as OnlineTrainer
 
-#from SetWrappers.AirQualityUCI import loadData
-from DataGenerators.Sines import generateData as loadData
-
-from Trainers.SingleInstanceTrainer import Trainer
 from Benchmark import benchmark,initializeDevice
-import sys
 from Evaluation.QuickOverview import plotOverview
 
-if len(sys.argv) == 1:
-    pathToSave = input("Pleas specify a foldername for the testrun.")
-else:
-    pathToSave = sys.argv[1]
+pathToSave = "UCR Set Demo"
 
 device = initializeDevice()
 Dimensions = 2 # Dataset dimensions
 
-trainingSet,validationSet,testSet = loadData(Dimensions)
 
-model = ModelClass(Dimensions,device)
+trainingSet,validationSet,testSet = DataSet(Dimensions)
 
+model = FeedForwardAE(Dimensions,device)
 
-trainer = Trainer(model,device)
+trainer = OnlineTrainer(model,device)
 
 resultFolder = benchmark(trainingSet,
-                validationSet,
-                testSet,
-                model,
-                trainer,
-                n_epochs=40,
-                pathToSave=pathToSave,
-                device = device)
+          validationSet,
+          testSet,
+          model,
+          trainer,
+          n_epochs=40,
+          pathToSave=pathToSave,
+          device = device)
 
 plotOverview(resultFolder)
 

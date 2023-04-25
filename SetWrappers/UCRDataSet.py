@@ -19,20 +19,25 @@ def sampleDataSet(dimensions,normalData,anomalData,anomalyPercentage,allNormalTh
         
     if allNormalTheSame:
         firstDimension = normalData.sample()
-        otherDimensions = normalData.loc[normalData.iloc[1] == firstDimesion.iloc[1]].sample(n=dimensions-1) 
-        data = pd.concat(firstDimsnion,otherDimensions)
+        otherDimensions = normalData.loc[normalData[normalData.columns[0]] == firstDimesion.iloc[firstDimension.columns[0],0]].sample(n=dimensions-1) 
+        data = pd.concat([firstDimsnion,otherDimensions])
     else:
         data = normalData.sample(n=dimensions)
 
     if isAnomal:
-        normalDimensions = np.arange(0,dimension)
+        normalDimensions = np.arange(0,dimensions)
 
-        for i in range(0,nAnomalDimnsions):
-            dimensionIndex = int(len(normalDimension)*random())
+        for i in range(0,nAnomalDimensions):
+            dimensionIndex = int(len(normalDimensions)*random())
             dimension = normalDimensions[dimensionIndex]
-            normalDimensions.remove(dimensionIndex)
+            normalDimensions = np.delete(normalDimensions,dimensionIndex)
 
-            data.loc[dimension] = anomalData.sample()
+            sample = anomalData.sample().values
+            print(data)
+            print(sample)
+            print(data.loc[dimension])
+
+            data.loc[dimension] = sample
 
     
     data = data.drop(data.columns[1],axis=1)#droping the first column with the labels
@@ -45,8 +50,7 @@ UCRPath = "data/UCR/UCRArchive_2018/"
 
 def loadData(dimensions,**hyperParameters):
 
-    defaultHyperParameters = 
-        {
+    defaultHyperParameters = {
             "DataSet":"UMD",#Name of the dataset
             "AnomalyClass":3,#Class that is picked as anomal
             "AnomalyPercentageTrain":0,#Percentage of anomalies in training set
@@ -62,13 +66,13 @@ def loadData(dimensions,**hyperParameters):
             "TestSetSize":30,
         }
 
-    HPs={**defaultHyperParameters,hyperParameters}
+    HPs={**defaultHyperParameters,**hyperParameters}
     
     trainingData = pd.read_csv(UCRPath+HPs["DataSet"]+"/"+HPs["DataSet"]+"_TRAIN.tsv",sep='\t')
     testData = pd.read_csv(UCRPath+HPs["DataSet"]+"/"+HPs["DataSet"]+"_TEST.tsv",sep='\t')
     
     if not HPs["KeepTrainAndTestStructure"]:
-        trainingData = pd.concat(trainingData,testData)
+        trainingData = pd.concat([trainingData,testData])
         testData = trainingData
     
 
@@ -80,14 +84,14 @@ def loadData(dimensions,**hyperParameters):
 
     
     
-    trainingAnomaly = trainingData.loc[trainingData.iloc[1] == anomalyClass]
-    trainingData = trainingData.loc[trainingData.iloc[1] != anomalyClass]
+    trainingAnomaly = trainingData.loc[trainingData[trainingData.columns[0]] == anomalyClass]
+    trainingData = trainingData.loc[trainingData[trainingData.columns[0]] != anomalyClass]
 
-    testAnomaly = testData.loc[testData.iloc[1] == anomalyClass]
-    testData = testData.loc[testData.iloc[1] != anomalyClass]
+    testAnomaly = testData.loc[testData[testData.columns[0]] == anomalyClass]
+    testData = testData.loc[testData[testData.columns[0]] != anomalyClass]
     
     trainingSet = [0]*HPs["TrainingSetSize"]
-    for i in range(0,len(HPs["TrainingSetSize"])):
+    for i in range(0,HPs["TrainingSetSize"]):
         trainingSet[i] = sampleDataSet(dimensions,
                                        trainingData,
                                        trainingAnomaly,
@@ -99,7 +103,7 @@ def loadData(dimensions,**hyperParameters):
     trainingBlock = DataBlock("UCR Archive - "+HPs["DataSet"],trainingSet,dimensions,**HPs)
 
     validationSet = [0]*HPs["ValidationSetSize"]
-    for i in range(0,len(HPs["ValidaionSetSize"])):
+    for i in range(0,HPs["ValidationSetSize"]):
         validationSet[i] = sampleDataSet(dimensions,
                                        trainingData,
                                        trainingAnomaly,
@@ -111,7 +115,7 @@ def loadData(dimensions,**hyperParameters):
     validationBlock = DataBlock("UCR Archive - "+HPs["DataSet"],validationSet,dimensions,**HPs)
 
     testSet = [0]*HPs["TestSetSize"]
-    for i in range(0,len(HPs["TestSetSize"])):
+    for i in range(0,HPs["TestSetSize"]):
         testSet[i] = sampleDataSet(dimensions,
                                        testData,
                                        testAnomaly,
