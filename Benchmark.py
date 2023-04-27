@@ -310,9 +310,15 @@ def benchmark(trainingSet,validationSet,testSet,
 
         tr.reset_index(drop=True,inplace=True)    
         pr.reset_index(drop=True,inplace=True)    
-        labels.reset_index(drop=True,inplace=True)    
+        
+        toConcat = []
+        if len(labels) > 0:
+            labels.reset_index(drop=True,inplace=True)    
+            toConcat = [tr,labels.to_frame(),pr]
+        else:
+            toConcat = [tr,pr]
 
-        result = pd.concat([tr,labels.to_frame(),pr],axis=1)
+        result = pd.concat(toConcat,axis=1)
 
         result.to_csv(pathToSave+".csv",sep = CSVDelimiter)
 
@@ -387,7 +393,7 @@ def benchmark(trainingSet,validationSet,testSet,
         
         for j,key in enumerate(SelectedExamples):
             for index in SelectedExamples[key]:
-                if dataSets[j].hasLabels:
+                if dataSets[j].hasLabels():
                     saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+key+"("+str(index)+")",dataSets[j].Labels()[index])
                 else:
                     saveExample(model,dataSets[j].Data()[index],snapshotFolders[i]+key+"("+str(index)+")")

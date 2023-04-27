@@ -13,34 +13,44 @@ def sampleDataSet(dimensions,normalData,anomalData,anomalyPercentage,allNormalTh
 
     if allDimensionsAnomal and isAnomal:
         data = anomalData.sample(n=dimensions)
-        data = data.drop(data.columns[1],axis=1)#droping the first column with the labels
+        data = data.drop(data.columns[0],axis=1)#droping the first column with the labels
         tensorData = torch.tensor(data.values.astype(np.float32))
         return torch.transpose(tensorData,0,1)
-        
-    if allNormalTheSame:
-        firstDimension = normalData.sample()
-        otherDimensions = normalData.loc[normalData[normalData.columns[0]] == firstDimesion.iloc[firstDimension.columns[0],0]].sample(n=dimensions-1) 
-        data = pd.concat([firstDimsnion,otherDimensions])
-    else:
-        data = normalData.sample(n=dimensions)
-
+    
+    normalDimensions = np.arange(0,dimensions)
+    anomalDimensions = []
+    
     if isAnomal:
-        normalDimensions = np.arange(0,dimensions)
 
         for i in range(0,nAnomalDimensions):
             dimensionIndex = int(len(normalDimensions)*random())
-            dimension = normalDimensions[dimensionIndex]
+            anomalDimensions.append(normalDimensions[dimensionIndex])
             normalDimensions = np.delete(normalDimensions,dimensionIndex)
-
-            sample = anomalData.sample().values
-            print(data)
-            print(sample)
-            print(data.loc[dimension])
-
-            data.loc[dimension] = sample
-
     
-    data = data.drop(data.columns[1],axis=1)#droping the first column with the labels
+    if not len(anomalDimensions) <= 1:
+        anomalDimensions = np.array(anomalDimensions).sort()
+    
+
+    normalSource = normalData
+
+
+
+    if allNormalTheSame:
+        firstDimension = normalData.sample()
+        normalSource = normalData.loc[normalData[normalData.columns[0]] == firstDimesion.iloc[firstDimension.columns[0],0]] 
+        data = pd.concat([firstDimsnion,otherDimensions])
+    
+    dataElements = []
+
+    for i in range(0,dimensions):
+        if i in normalDimensions:
+            dataElements.append(normalSource.sample())
+            continue
+        if i in anomalDimensions:
+            dataElements.append(anomalData.sample())
+
+    data = pd.concat(dataElements)
+    data = data.drop(data.columns[0],axis=1)#droping the first column with the labels
     tensorData = torch.tensor(data.values.astype(np.float32))
     return torch.transpose(tensorData,0,1)
 
@@ -68,14 +78,13 @@ def loadData(dimensions,**hyperParameters):
 
     HPs={**defaultHyperParameters,**hyperParameters}
     
-    trainingData = pd.read_csv(UCRPath+HPs["DataSet"]+"/"+HPs["DataSet"]+"_TRAIN.tsv",sep='\t')
-    testData = pd.read_csv(UCRPath+HPs["DataSet"]+"/"+HPs["DataSet"]+"_TEST.tsv",sep='\t')
-    
+    trainingData = pd.read_csv(UCRPath+HPs["DataSet"]+"/"+HPs["DataSet"]+"_TRAIN.tsv",sep='\t',header=None)
+    testData = pd.read_csv(UCRPath+HPs["DataSet"]+"/"+HPs["DataSet"]+"_TEST.tsv",sep='\t',header=None)
+   
     if not HPs["KeepTrainAndTestStructure"]:
         trainingData = pd.concat([trainingData,testData])
         testData = trainingData
     
-
 
     if HPs["SmallestClassAsAnomaly"]:
         anomalyClass = min(trainingData.iloc[1].value_counts().iloc[2])    

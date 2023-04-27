@@ -1,7 +1,7 @@
 #!/bin/python
 
 from AEModels.FeedForward import Model as FeedForwardAE
-from SetWrappers.UCRDataSet import loadData as DataSet
+from SetWrappers.UCRArchive import loadData as DataSet
 from Trainers.SingleInstanceTrainer import Trainer as OnlineTrainer
 
 from Benchmark import benchmark,initializeDevice

@@ -46,6 +46,7 @@ class DataBlock(block):
         block.__init__(self,name,**hyperParameters)
         self.Dataset=Dataset
         self.Dimensions = Dimensions
+        self.haslabels = False
 
     #if you have labeled data or you are using a data generator, you can add
     #the gound truth here. It should be an array of the same size as the set,
@@ -53,10 +54,10 @@ class DataBlock(block):
     # means it is.
     def setLabels(self,isAnomaly):
         self.labels= isAnomaly
-        self.hasLabels = True
+        self.haslabels = True
 
     def hasLabels(self):
-        return self.hasLabels
+        return self.haslabels
 
     def Labels(self):
         return self.labels
