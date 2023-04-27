@@ -46,9 +46,9 @@ def benchmark(trainingSet,validationSet,testSet,
               Errors = [], #Can be normal or downstream errors
               SaveAfterEpochs = 10,
               inplace=True,
-              n_exampleOutputsTraining   = [2,2,1],#NUmber of Examples that show [high Error, low Error,average Error]
-              n_exampleOutputsValidation = [2,2,1],
-              n_exampleOutputsTest       = [2,2,1],
+              n_exampleOutputsTraining   = [5,5,3],#NUmber of Examples that show [high Error, low Error,average Error]
+              n_exampleOutputsValidation = [5,5,3],
+              n_exampleOutputsTest       = [5,5,3],
               create_output = True, #for test purposes
               defaultError = TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device)):
     
@@ -313,8 +313,11 @@ def benchmark(trainingSet,validationSet,testSet,
         
         toConcat = []
         if len(labels) > 0:
+            if not isinstance(labels,pd.DataFrame):
+                labels = pd.DataFrame(labels)
+                labels = labels.rename(columns={labels.columns[0]:"Is Anomaly"})
             labels.reset_index(drop=True,inplace=True)    
-            toConcat = [tr,labels.to_frame(),pr]
+            toConcat = [tr,labels,pr]
         else:
             toConcat = [tr,pr]
 

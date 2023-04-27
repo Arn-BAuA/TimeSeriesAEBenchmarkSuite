@@ -13,9 +13,9 @@ device = initializeDevice()
 Dimensions = 2 # Dataset dimensions
 
 
-trainingSet,validationSet,testSet = DataSet(Dimensions)
+trainingSet,validationSet,testSet = DataSet(Dimensions,DataSet = "UMD")
 
-model = FeedForwardAE(Dimensions,device)
+model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 
 trainer = OnlineTrainer(model,device)
 
