@@ -1,6 +1,6 @@
 #!/bin/python
 
-from AEModels.FeedForward import Model as FeedForwardAE
+from Models.FeedForward import Model as FeedForwardAE
 from DataGenerators.Sines import generateData as Sines
 from Trainers.SingleInstanceTrainer import Trainer as OnlineTrainer
 
