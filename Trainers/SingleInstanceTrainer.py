@@ -21,6 +21,7 @@ class Trainer(block):
 
     def doEpoch(self,model,trainingSet,validationSet):
     
+        model = model.train()
         for seq_true in trainingSet.Data():
 
             self.optimizer.zero_grad()
