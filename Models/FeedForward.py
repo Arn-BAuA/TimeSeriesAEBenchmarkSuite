@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from BlockAndDatablock import block
+from Models.utility import strToActivation
 
 class Model(block,nn.Module): #Plain Feed Forward Encoder....
     
@@ -17,11 +18,6 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
         block.__init__(self,"FeedForwardAE",**HyperParameters) 
         nn.Module.__init__(self)
         
-        activations = {
-                    "ReLU":torch.nn.ReLU,
-                    "Sigmoid":torch.nn.Sigmoid,
-                    "tanh":torch.nn.Tanh
-                }
         
         LayerStack = [0]*(2*len(self.HP["LayerSequence"])+1)
         
@@ -30,7 +26,7 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
         
         for i in range(0,len(actualSequence)-2):
             LayerStack[2*i] = torch.nn.Linear(actualSequence[i],actualSequence[i+1])
-            LayerStack[2*i + 1] = activations[self.HP["ActivationFunction"]]()
+            LayerStack[2*i + 1] = strToActivation(self.HP["ActivationFunction"])()
         
         LayerStack[-1] = torch.nn.Linear(actualSequence[-2],actualSequence[-1])
 
