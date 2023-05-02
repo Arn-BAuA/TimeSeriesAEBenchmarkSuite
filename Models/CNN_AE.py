@@ -85,8 +85,9 @@ class Model(block,nn.Module):
 
         if self.hasFFTEncoder:
             #Create FFT Encoder
+            #TODO THis is the time domain input size at the begin of the input. It would be nice to make a version
+            # WHere the input is actually oriented towards the fft output
             layers = self.createLayers([1]+self.HP["LayerSequenceEnc"]+[self.HP["LatentSize"]])
-            layers = [torch.fft.fft]+layers
             self.FFTEncoder = nn.Sequential(*layers)
             self.FFTEncoder.to(device)
 
@@ -101,7 +102,7 @@ class Model(block,nn.Module):
             #linar equation a lá y=mx+b to determine n neurons per layer (x = nInnerNeurons, y = neuronsPerLayer)
             # starts at x = 0 with nGlueLayerInput so some of the formulas are simpler as in the general case.
             x = np.arange(self.HP["GlueLayerSize"])
-            m = (nLatentNeurons-nGleuLayerInput)/(self.HP["GlueLayerSize"]-1)
+            m = (nLatentNeurons-nGlueLayerInput)/(self.HP["GlueLayerSize"]-1)
             b = nGlueLayerInput
             
             nNeurons = m*x + b
@@ -134,10 +135,13 @@ class Model(block,nn.Module):
         if self.hasTimeEncoder:
             xTime = self.TimeEncoder(x)
         if self.hasFFTEncoder:
-            xFTT = self.FFTEncoder(x)
+            xFFT = torch.fft.rfft(x)
+            xFFT =xFFT.abs()
+            xFFT = torch.cat([xFFT,torch.zeros([1,self.Dimensions,self.HP["InputSize"]-xFFT.size()[-1]]).to(self.device)],dim = -1)
+            xFFT = self.FFTEncoder(xFFT)
 
         if self.hasGlueLayer:
-            glueInput = torch.cat((xFFT,xTime))
+            glueInput = torch.cat((xFFT,xTime),dim=-1)
             x = self.GlueLayer(glueInput)
         else:
             if self.hasTimeEncoder:

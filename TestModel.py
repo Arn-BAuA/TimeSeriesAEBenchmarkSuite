@@ -10,7 +10,7 @@ from Trainers.SingleInstanceTrainer import Trainer as OnlineTrainer
 from Benchmark import benchmark,initializeDevice
 from Evaluation.QuickOverview import plotOverview
 
-pathToSave = "CNN Sines Test"
+pathToSave = "CNN with FFT Sines Test"
 
 device = initializeDevice()
 Dimensions = 2 # Dataset dimensions
@@ -21,7 +21,8 @@ trainingSet,validationSet,testSet = Sines(Dimensions)
 
 #model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 #model = LSTMAE(Dimensions,device,CellKind = "LSTM")
-model = CNNAE(Dimensions,device)
+#model = CNNAE(Dimensions,device)
+model = CNNAE(Dimensions,device,hasFFTEncoder = True)
 
 trainer = OnlineTrainer(model,device)
 
