@@ -20,7 +20,7 @@ class Model(block,nn.Module):
                 "hasFFTEncoder":False, #if true, a second encoder, beside the time encoder is added, that porcesses the fft. 
                 "GlueLayerSize":2, #There is a stack of perceptrons that takes the output of the FFT- and TimeDecoder and Broadcasts them to the encoder input. That stack can have a height, specified here.
                 "hasOnlyFFTEncoder":False,#if true, only a fft encoder is provided
-                "ActivationFunction":"tanh", #activation function used perceptrons across the net
+                "ActivationFunction":"ReLU", #activation function used perceptrons across the net
                # "DownsampleByPooling":True, #if true, the downsampling in the decoder is done by pooling. if not, a layer of perceptrons does the job.
                 "BatchNorm":True,#if true, a batchnorm is applied after each covolution.
             }
@@ -31,28 +31,41 @@ class Model(block,nn.Module):
         layers = []
 
         for i,factor in enumerate(layerScaleFactors[:-1]):
-            nNeurons = np.ceil(self.HP["InputSize"]*factor)
-            nNeuronsNext = np.ceil(self.HP["inputSize"]*layerScaleFactors[i+1]) #Neurons on the next Layer...
+            nNeurons = int(np.ceil(self.HP["InputSize"]*factor))
+            nNeuronsNext = int(np.ceil(self.HP["InputSize"]*layerScaleFactors[i+1])) #Neurons on the next Layer...
 
             #Convolution
-            layers.append(nn.Conv1d(in_channels = self.Dimensions,out_channels = self.Dimensions,kernel_size = self.HP["KernelSize"]))
+            padding = 0
+            dilation = 1
+            kernel_size = self.HP["KernelSize"]
+            stride = 1
+
+            layers.append(nn.Conv1d(in_channels = self.Dimensions,
+                                    out_channels = self.Dimensions,
+                                    kernel_size = kernel_size,
+                                    dilation = dilation,
+                                    stride = stride,
+                                    padding = padding,
+                                    ))
+            nConvOutput = int((nNeurons + (2*padding) -(dilation * (kernel_size -1)) -1)/stride)+1
             #Batch normal
             if(self.HP["BatchNorm"]):
                 layers.append(nn.BatchNorm1d(num_features = self.Dimensions))
-            #Downscaling
-            layers.append(torch.nn.Linear(nNeurons,nNeuronsNext))
-            layers.append(strToActivation(self.HP["ActivationFunction"]))
+            #Up/Downscaling
+            layers.append(torch.nn.Linear(nConvOutput,nNeuronsNext))
+            layers.append(strToActivation(self.HP["ActivationFunction"])())
         
+
         return layers
 
 
-    def __init__(self,Dimensions,device,**HyperParameters)
+    def __init__(self,Dimensions,device,**HyperParameters):
 
         self.device = device
         self.Dimensions = Dimensions
 
         block.__init__(self,"ConvolutionalAE",**HyperParameters)
-        nn.Moduel.__init__(self)
+        nn.Module.__init__(self)
 
         if self.HP["hasOnlyFFTEncoder"] == True:
             self.hasFFTEncoder = True
@@ -66,13 +79,13 @@ class Model(block,nn.Module):
 
         if self.hasTimeEncoder:
             #Create Time Encoder
-            layers = createLayers(self.HP["LayerSequenceEnc"]+[self.HP["LatentSize"]])
+            layers = self.createLayers([1]+self.HP["LayerSequenceEnc"]+[self.HP["LatentSize"]])
             self.TimeEncoder = nn.Sequential(*layers)
             self.TimeEncoder.to(device)
 
         if self.hasFFTEncoder:
             #Create FFT Encoder
-            layers = createLayers(self.HP["LayerSequenceEnc"]+[self.HP["LatentSize"]])
+            layers = self.createLayers([1]+self.HP["LayerSequenceEnc"]+[self.HP["LatentSize"]])
             layers = [torch.fft.fft]+layers
             self.FFTEncoder = nn.Sequential(*layers)
             self.FFTEncoder.to(device)
@@ -96,24 +109,28 @@ class Model(block,nn.Module):
             layers = []
 
             for i,n in enumerate(nNeurons[:-1]):
-                layers.append(torch.nn.Linear(n,nNeurons[i+1]))
-                layers.append(strToActivation(self.HP["ActivationFunction"]))
+                layers.append(torch.nn.Linear(int(n),int(nNeurons[i+1])))
+                layers.append(strToActivation(self.HP["ActivationFunction"])())
 
             self.GlueLayer = nn.Sequential(*layers)
 
         #Create Decoder
         if self.hasGlueLayer:
-            layers = createLayers([self.HP["LatentSize"]]+self.HP["LayerSequenceDec"])
+            layers = self.createLayers([self.HP["LatentSize"]]+self.HP["LayerSequenceDec"]+[1])
         else:
-            layers = createLayers(self.HP["LayerSequenceDec"])
-            n1 = np.ceil(self.HP["LatentSize"]*self.HP["InputSize"])
-            n2 = np.ceil(self.HP["LayerSequenceDec"][0]*self.HP["InputSize"])
+            layers = self.createLayers(self.HP["LayerSequenceDec"]+[1])
+            n1 = int(np.ceil(self.HP["LatentSize"]*self.HP["InputSize"]))
+            n2 = int(np.ceil(self.HP["LayerSequenceDec"][0]*self.HP["InputSize"]))
             layers = [torch.nn.Linear(n1,n2)]+layers
+            
+        layers+=[torch.nn.Linear(self.HP["InputSize"],self.HP["InputSize"])]
 
         self.Decoder = nn.Sequential(*layers)
 
     def forward(self,x):
-
+        x = torch.transpose(x,0,1)
+        x = torch.stack([x])
+        
         if self.hasTimeEncoder:
             xTime = self.TimeEncoder(x)
         if self.hasFFTEncoder:
@@ -123,10 +140,16 @@ class Model(block,nn.Module):
             glueInput = torch.cat((xFFT,xTime))
             x = self.GlueLayer(glueInput)
         else:
-            if not self.hasTimeEncoder:
+            if self.hasTimeEncoder:
                 x = xTime
             else:
                 x = xFFT
+        
+        
 
-        return self.Decoder(x)
+        x = self.Decoder(x)
+        x = x[0]
+        x = torch.transpose(x,0,1)
+        return x
+
 

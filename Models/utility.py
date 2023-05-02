@@ -1,4 +1,6 @@
 
+import torch
+
 activations = {
             "ReLU":torch.nn.ReLU,
             "Sigmoid":torch.nn.Sigmoid,
