@@ -1,8 +1,19 @@
 #!/bin/python
 
 ################################################
-# THis is a Datagenerator, that adds a bunch of sine waves with noise and drift.
-
+# This is a Datagenerator for multivariate timeseries data, consisting of multiple sine waves added together in every dimension.
+# The data generator can also includes Anomalies in Amplitude, Frequency and Offset of all the sines, or single sines in the sries.
+# The generationprocess looks as follows:
+# The User specifies normal an anomal parameters for the sines in the series. For each parameter, a center and a span is specified.
+# The Generator than calculates a random walk in the intervall that is specified for each normal and anomal parameter.
+# The speed of the random walk can also be choosen by the user.
+# Quick summary: For each parameter and each point in time we now have a random walk for the normal state of the parameter and the anomal state.
+# Now it is choosen at random, by a rate defined by the user, where anomalies will be. At the points where anomalies are,
+# the parameter random walks are blended, with a smooth transition of a duration that is defined by the user.
+# Thus we get one random walk set of parameters, that contains the anomalies.
+# This random walk than gets put into the equation of sines (A*sin(t\phi+\theta)+B) to generate the time series
+# After the generation of the data, white noise is added at a level specified by the user.
+# Points in time are always equidistant.
 
 from BlockAndDatablock import DataBlock
 import numpy as np
@@ -10,17 +21,28 @@ from numpy.random import random
 import pandas as pd
 from Utility.DataSetSampler import RandomSampling
 
-def getSingleParameterVariation(value,span,changeRate,MaxSystemVelocity,duration,time):
+# Random walk for one INtervall / one Parameter
+def getSingleParameterVariation(value, #center of the interval of possible values
+                                span, #span of the intervall of possible values
+                                changeRate,#Rate that determines when the random walk changes direction
+                                MaxSystemVelocity, #max speed of the random walk in parameter per time
+                                duration, #duration of the simulated time series
+                                time #the time (array of time values)
+                                ):
     nChanges = int(duration*changeRate)
 
-    timePoints = random([nChanges])*duration
+    timePoints = random([nChanges])*duration #points in time where change occures
     timePoints = np.sort(timePoints)
     timePoints[0]=0
     timePoints[-1] = duration
 
-    timeIntervals = timePoints[1:] - timePoints[:-1]
-    possibleMaxChange = timeIntervals*MaxSystemVelocity
+    timeIntervals = timePoints[1:] - timePoints[:-1] #intervals where the direction of random walk is constant
     
+    ##########################################
+    #THe next section looks a bit complicated. This is to assure, that we don't walk out of the interval
+    # during the walk while keeping the velocity.
+    #
+    possibleMaxChange = timeIntervals*MaxSystemVelocity 
     randomWalkValues = np.zeros(nChanges)
 
     #Random Walk:
@@ -28,13 +50,17 @@ def getSingleParameterVariation(value,span,changeRate,MaxSystemVelocity,duration
 
     change = np.multiply(2*possibleMaxChange,random([nChanges-1]))-possibleMaxChange
 
+    #here its assured that we dont walk out of the intervall:
     for i in range(1,len(randomWalkValues)):
         
         if np.abs(change[i-1]) >= span:
+            #We walked so long, that we covered the whole span of the intervall.
+            # in this case, a new location for our parameter is sampled at random
             newParameter = (2*span*random())-span
         else:
             newParameter = randomWalkValues[i-1] + change[i-1]
 
+            #We would have walked out, instead, we pretend that we "bounced" off the intervall boundary
             if newParameter < -span:
                 newParameter = -span -(newParameter+span)
             if newParameter > span:
@@ -42,7 +68,8 @@ def getSingleParameterVariation(value,span,changeRate,MaxSystemVelocity,duration
             
         randomWalkValues[i] = newParameter
     
-    #Getting parameter Varaition by linear interpolation between the points of the walk.
+    # We now have the position of the parameter at the points where the change occures.
+    # We now transfer this to the points in time of the time series by linear interpolation.
     parameterValues = np.zeros(len(time))
 
     for i in range(0,len(time)):
