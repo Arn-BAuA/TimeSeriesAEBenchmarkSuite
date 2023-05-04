@@ -155,7 +155,8 @@ def benchmark(trainingSet,validationSet,testSet,
     #########################################
 
     model.to(device)    
-    
+    trainer.setDataSets(trainingSet,validationSet)
+
     #Calculate Error war hier definiert...
 
     TotalTrainingWallTime = 0
@@ -190,7 +191,7 @@ def benchmark(trainingSet,validationSet,testSet,
             startTime = time.time()
             startCPUTime = time.process_time()
 
-            model = trainer.doEpoch(model,trainingSet,validationSet)
+            model = trainer.doEpoch(model)
 
             endTime = time.time()
             endCPUTime = time.process_time()

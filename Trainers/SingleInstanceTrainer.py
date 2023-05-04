@@ -18,11 +18,16 @@ class Trainer(block):
         
         self.optimizer = torch.optim.Adam(model.parameters(),lr = 1e-3)
         self.criterion = nn.L1Loss(reduction = "sum").to(device)
+    
+    #Batching and Augmentation would be done here....
+    def setDataSets(self,trainingSet,validationSet):
+        self.trainingSet = trainingSet
+        #self.validationSet = validationSet
 
-    def doEpoch(self,model,trainingSet,validationSet):
+    def doEpoch(self,model):
     
         model = model.train()
-        for seq_true in trainingSet.Data():
+        for seq_true in self.trainingSet.Data():
 
             self.optimizer.zero_grad()
         
