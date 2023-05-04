@@ -7,6 +7,7 @@ from Models.CNN_AE import Model as CNNAE
 from SetWrappers.UCRArchive import loadData as DataSet
 from DataGenerators.Sines import generateData as Sines
 from Trainers.SingleInstanceTrainer import Trainer as OnlineTrainer
+from Trainers.BatchedTrainer import Trainer as BatchedTrainer
 
 from Benchmark import benchmark,initializeDevice
 from Evaluation.QuickOverview import plotOverview
@@ -25,7 +26,8 @@ model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 #model = CNNAE(Dimensions,device)
 #model = CNNAE(Dimensions,device,hasFFTEncoder = True)
 
-trainer = OnlineTrainer(model,device)
+#trainer = OnlineTrainer(model,device)
+trainer = BatchedTrainer(model,device)
 
 resultFolder = benchmark(trainingSet,
           validationSet,

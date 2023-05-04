@@ -38,7 +38,7 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
     def forward(self,x):
         xShape = x.shape
         
-        x = torch.flatten(x)
+        x = torch.flatten(x,start_dim=1)
         x = self.model(x)
         x = torch.reshape(x,xShape)
 
