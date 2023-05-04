@@ -69,5 +69,5 @@ class DataBlock(block):
         return self.Dimensions
 
     def Length(self):
-        return self.Dataset[0].shape[0]
+        return self.Dataset[0].shape[2]
 

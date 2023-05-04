@@ -61,11 +61,16 @@ class Model(block,nn.Module):#Autoencoder form Bin's drift detection script. (Ma
         self.output = nn.Linear(self.hidden_dim, self.input_dim)
 
     def forward(self,x):
+        x = torch.transpose(x,1,2)
         #This has some doubled code... maybe there is a better way...
         if self.isLSTM:
-            return self._LSTMForward(x)
+            x = self._LSTMForward(x)
+            x = torch.transpose(x,1,2)
+            return x
         else:
-            return self._GRUForward(x)
+            x = self._GRUForward(x)
+            x = torch.transpose(x,1,2)
+            return x
 
     def _LSTMForward(self,x):
         encoder_out,(encoder_hidden,encoder_cell) = self.encoder(x)

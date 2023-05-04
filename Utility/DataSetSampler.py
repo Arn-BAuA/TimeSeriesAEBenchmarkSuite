@@ -31,7 +31,9 @@ def RandomSampling(Data,numberOfSamples,sampleWindowSize,includeTime = False,dat
         sequence = sequence.drop(columns="Is Anomaly")
 
         #conversion to tensor
-        DataSet[i] = torch.tensor(sequence.values.astype(np.float32))
+        sampledTensor = torch.tensor(sequence.values.astype(np.float32))
+        sampledTensor = torch.transpose(sampledTensor,0,1)
+        DataSet[i] = torch.stack([sampledTensor])
     
     return DataSet,AnomalyIndex
 

@@ -291,7 +291,11 @@ def benchmark(trainingSet,validationSet,testSet,
             
         seq_true = seq_true.to("cpu")
         seq_pred = seq_pred.to("cpu")
-            
+        
+        seq_true = seq_true[0]
+        seq_true = torch.transpose(seq_true,0,1)
+        seq_pred = seq_pred[0]
+        seq_pred = torch.transpose(seq_pred,0,1)
 
         tr = pd.DataFrame(seq_true.detach().numpy())
         pr = pd.DataFrame(seq_pred.detach().numpy())
