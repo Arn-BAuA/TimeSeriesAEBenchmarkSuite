@@ -1,8 +1,9 @@
 #!/bin/python
 
-#from Models.FeedForward import Model as FeedForwardAE
+from Models.FeedForward import Model as FeedForwardAE
 from Models.RecurrendAE import Model as LSTMAE
-#from Models.CNN_AE import Model as CNNAE
+from Models.CNN_AE import Model as CNNAE
+
 from SetWrappers.UCRArchive import loadData as DataSet
 from DataGenerators.Sines import generateData as Sines
 from Trainers.SingleInstanceTrainer import Trainer as OnlineTrainer
@@ -19,8 +20,8 @@ Dimensions = 2 # Dataset dimensions
 #trainingSet,validationSet,testSet = Sines(Dimensions)
 trainingSet,validationSet,testSet = DataSet(Dimensions,DataSet = "UMD")
 
-#model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
-model = LSTMAE(Dimensions,device,CellKind = "LSTM")
+model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
+#model = LSTMAE(Dimensions,device,CellKind = "LSTM")
 #model = CNNAE(Dimensions,device)
 #model = CNNAE(Dimensions,device,hasFFTEncoder = True)
 

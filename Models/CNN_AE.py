@@ -129,8 +129,6 @@ class Model(block,nn.Module):
         self.Decoder = nn.Sequential(*layers)
 
     def forward(self,x):
-        x = torch.transpose(x,0,1)
-        x = torch.stack([x])
         
         if self.hasTimeEncoder:
             xTime = self.TimeEncoder(x)
@@ -152,8 +150,6 @@ class Model(block,nn.Module):
         
 
         x = self.Decoder(x)
-        x = x[0]
-        x = torch.transpose(x,0,1)
         return x
 
 
