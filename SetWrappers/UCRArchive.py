@@ -55,7 +55,7 @@ def sampleDataSet(dimensions,normalData,anomalData,anomalyPercentage,allNormalTh
     data = pd.concat(dataElements)
     data = data.drop(data.columns[0],axis=1)#droping the first column with the labels
     tensorData = torch.tensor(data.values.astype(np.float32))
-    return torch.transpose(tensorData,0,1),np.full(tensorData.size()[1],isAnomal)
+    return torch.stack([tensorData]),np.full(tensorData.size()[1],isAnomal)
 
         
 
