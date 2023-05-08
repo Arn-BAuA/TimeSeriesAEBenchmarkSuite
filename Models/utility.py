@@ -6,7 +6,7 @@ import numpy as np
 activations = {
             "ReLU":torch.nn.ReLU,
             "Sigmoid":torch.nn.Sigmoid,
-            "tanh":torch.nn.Tanh
+            "Tanh":torch.nn.Tanh
         }
 
 #Method for converting the arguments passed 
@@ -25,7 +25,6 @@ def createLinearNetwork(InputSize,OutputSize,nLayers,activationFunction):
         raise ValueError("The number of Layers for a linear Interpolated network must be at least 2 (now it's "+nLayers+")")
 
     #linar equation a lá y=mx+b to determine n neurons per layer (x = nInnerNeurons, y = neuronsPerLayer)
-    # starts at x = 0 with nGlueLayerInput so some of the formulas are simpler as in the general case.
     x = np.arange(nLayers)
     m = (OutputSize-InputSize)/(nLayers-1)
     b = InputSize

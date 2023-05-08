@@ -11,13 +11,13 @@ class Model(block,nn.Module): #Using Vaswani Et al's Transformer as heart of an 
                 "nWords":15,
                 "WordSize":20,
                 "nPreprocessorLayers":2,
-                "ActivationFunctionPreprocessor":"ReLu",
+                "ActivationFunctionPreprocessor":"Tanh",
                 "nAttentionHeads":4,
                 "nTrEncoderLayers":2,
                 "nTrDecoderLayers":2,
                 "TrFFDim":40,
                 "nPostprocessorLayers":4,
-                "ActivationFunctionPostprocessor":"ReLu",}
+                "ActivationFunctionPostprocessor":"Tanh",}
     
     def __init__(self,Dimensions,device,**HyperParameters):
         
@@ -29,7 +29,7 @@ class Model(block,nn.Module): #Using Vaswani Et al's Transformer as heart of an 
         
 
         #Create Preprocessor
-        self.beginOfWords =  np.floor(np.linspace(0,self.HP["InputSize"]-self.HP["WordSize"],self.HP[nWords]))
+        self.beginOfWords =  np.floor(np.linspace(0,self.HP["InputSize"]-self.HP["WordSize"],self.HP["nWords"]))
         self.endOfWords = self.beginOfWords+self.HP["WordSize"]
 
         self.PreprocessorNetwork = createLinearNetwork(
@@ -68,14 +68,14 @@ class Model(block,nn.Module): #Using Vaswani Et al's Transformer as heart of an 
         embeddedWindows = [0]*self.HP["nWords"]
 
         for i in range(0,self.HP["nWords"]):
-            window = x[:,:,self.beginOfWords[i],self.endOfWords[i]]
+            window = x[:,:,int(self.beginOfWords[i]):int(self.endOfWords[i])]
             window = torch.flatten(window,start_dim=1)
             embeddedWindows[i] = self.PreprocessorNetwork(window)
         
         #Transformer Stage
         transformerEncoderInput = torch.stack(embeddedWindows,dim = 1)
         transformerDecoderInput = torch.zeros_like(transformerEncoderInput)
-        
+
         transformerOutput = self.Transformer(transformerEncoderInput,transformerDecoderInput)
 
         #PostProcessing
