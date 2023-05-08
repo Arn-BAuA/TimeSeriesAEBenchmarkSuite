@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from BlockAndDatablock import block
-from Models.utility import strToActivation
+from Models.utility import strToActivation,createLinearNetwork
 import numpy as np
 
 class Model(block,nn.Module): 
@@ -99,22 +99,13 @@ class Model(block,nn.Module):
             if self.HP["GlueLayerSize"] < 2:
                 self.HP["GlueLayerSize"] = 2
             
-            #linar equation a lá y=mx+b to determine n neurons per layer (x = nInnerNeurons, y = neuronsPerLayer)
-            # starts at x = 0 with nGlueLayerInput so some of the formulas are simpler as in the general case.
-            x = np.arange(self.HP["GlueLayerSize"])
-            m = (nLatentNeurons-nGlueLayerInput)/(self.HP["GlueLayerSize"]-1)
-            b = nGlueLayerInput
+            glueLayerActivationFunction = strToActivation(self.HP["ActivationFunction"])()
+
+            self.GlueLayer = createLinearNetwork(InputSize = nGlueLayerInput,
+                                                 OutputSize = nLatentNeurons,
+                                                 nLayers = self.HP["GlueLayerSize"],
+                                                 activationFunction = glueLayerActivationFunction)
             
-            nNeurons = m*x + b
-
-            layers = []
-
-            for i,n in enumerate(nNeurons[:-1]):
-                layers.append(torch.nn.Linear(int(n),int(nNeurons[i+1])))
-                layers.append(strToActivation(self.HP["ActivationFunction"])())
-
-            self.GlueLayer = nn.Sequential(*layers)
-
         #Create Decoder
         if self.hasGlueLayer:
             layers = self.createLayers([self.HP["LatentSize"]]+self.HP["LayerSequenceDec"]+[1])
@@ -135,7 +126,7 @@ class Model(block,nn.Module):
         if self.hasFFTEncoder:
             xFFT = torch.fft.rfft(x)
             xFFT =xFFT.abs()
-            xFFT = torch.cat([xFFT,torch.zeros([1,self.Dimensions,self.HP["InputSize"]-xFFT.size()[-1]]).to(self.device)],dim = -1)
+            xFFT = torch.cat([xFFT,torch.zeros([xFFT.size()[0],self.Dimensions,self.HP["InputSize"]-xFFT.size()[-1]]).to(self.device)],dim = -1)
             xFFT = self.FFTEncoder(xFFT)
 
         if self.hasGlueLayer:

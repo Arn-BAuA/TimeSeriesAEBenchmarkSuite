@@ -197,14 +197,8 @@ def generateSet(numSamples,containsAnomalies,dimensions,**HPs):
     return Block
 
 def generateData(dimensions,**hyperParameters):
+    
 
-    #That Hyperparameter Set generates one Sine wave that varies in Frequency and 
-    #in amplitude to the specified degree (1 center Amplitude, varies between 0.9 an 1.1 and so forth).
-    #With a chance of AomalyChance, An anomaly is placed on the time series. That means that, if
-    # ANomaly in frequency or amplitude is true for the given sine, the frequency or amplitude will be sampled
-    # From the anomal paramters
-    # The ramptime designates the time the system transitions from normal to anormal and back. At the points in the 
-    # transition, a linear combination of normal an anormal is used.
 
     defaultHyperParameters = {
         "Amplitudes" :          [[1],[1] ],#center of the amplitude parameter span

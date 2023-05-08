@@ -22,9 +22,9 @@ Dimensions = 2 # Dataset dimensions
 trainingSet,validationSet,testSet = DataSet(Dimensions,DataSet = "UMD")
 
 #model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
-model = LSTMAE(Dimensions,device,CellKind = "LSTM")
+#model = LSTMAE(Dimensions,device,CellKind = "LSTM")
 #model = CNNAE(Dimensions,device)
-#model = CNNAE(Dimensions,device,hasFFTEncoder = True)
+model = CNNAE(Dimensions,device,hasFFTEncoder = True)
 
 #trainer = OnlineTrainer(model,device)
 trainer = BatchedTrainer(model,device)
