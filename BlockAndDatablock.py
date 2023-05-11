@@ -47,6 +47,7 @@ class DataBlock(block):
         self.Dataset=Dataset
         self.Dimensions = Dimensions
         self.haslabels = False
+        self.isGeneratedFromClassificationDS = False
 
     #if you have labeled data or you are using a data generator, you can add
     #the gound truth here. It should be an array of the same size as the set,
@@ -55,6 +56,21 @@ class DataBlock(block):
     def setLabels(self,isAnomaly):
         self.labels= isAnomaly
         self.haslabels = True
+
+    #When Data is generated from a time series Classification DS,
+    # Some class is chosen as anomalous and mixed
+    #with the others.
+    # THe whole datapoint is than marked as anomalous,
+    #even though only a small portion of it might differ
+    # from the normal data.
+    # THis has to be noted, for the AUC Sore, which
+    #Is than calculated in a diffrent manner to account
+    # for this mismatch from labeling to actual anomaly.
+    def IsGeneratedFromClassificationDS(self):
+        return self.isGeneratedFromClassificationDS
+
+    def setGeneratedFromCDS(self,value):
+        self.isGeneratedFromClassificationDS = True
 
     def hasLabels(self):
         return self.haslabels
