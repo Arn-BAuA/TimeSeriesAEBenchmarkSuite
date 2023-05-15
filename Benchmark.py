@@ -93,6 +93,9 @@ def benchmark(trainingSet,validationSet,testSet,
     runInformation["Used Errors"] = []
     for err in Errors:
         runInformation["Used Errors"].append(err.Name())
+    
+    if useAUCScore:
+        runInformation["Used Errors"].append("AUC Score")
 
     #TODO: AUtomatisch einen kleinen Steckbrief der Hardware mitloggen...
     hardwareInfo = {
