@@ -17,6 +17,7 @@ pathForResults = "Results/"
 
 import os
 from datetime import datetime
+from Errors.AUCScore import AUCScore
 import json
 import pandas as pd
 import time
@@ -50,6 +51,7 @@ def benchmark(trainingSet,validationSet,testSet,
               n_exampleOutputsValidation = [5,5,3],
               n_exampleOutputsTest       = [5,5,3],
               create_output = True, #for test purposes
+              useAUCScore = True,
               defaultError = TorchErrorWrapper("L1 Error",torch.nn.L1Loss(reduction = "sum"),device)):
     
     Errors = [defaultError] + Errors
@@ -125,6 +127,7 @@ def benchmark(trainingSet,validationSet,testSet,
     VSPostfixKey = " on Validation Set"
     TestPostfixKey = " on Test Set"
     ErrorKey = " Delta"
+    AUCKey = "AUC Score"
 
     ErrorColumnDict = {}
     
@@ -138,6 +141,15 @@ def benchmark(trainingSet,validationSet,testSet,
         ErrorColumnDict[err.Name()+VSPostfixKey+ErrorKey] = [0]*(n_epochs+1)
         ErrorColumnDict[err.Name()+TestPostfixKey+ErrorKey] = [0]*(n_epochs+1)
     
+    if(useAUCScore):
+        ErrorColumnDict[AUCKey+TSPostfixKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[AUCKey+VSPostfixKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[AUCKey+TestPostfixKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[AUCKey+TSPostfixKey+ErrorKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[AUCKey+VSPostfixKey+ErrorKey] = [0]*(n_epochs+1)
+        ErrorColumnDict[AUCKey+TestPostfixKey+ErrorKey] = [0]*(n_epochs+1)
+    
+
     ErrorColumnDict[CPUTKey] = [0]*(n_epochs+1)
     ErrorColumnDict[WallTKey] = [0]*(n_epochs+1)
 
@@ -234,6 +246,19 @@ def benchmark(trainingSet,validationSet,testSet,
             EvaluatedErrors[err.Name()+TestPostfixKey] = np.mean(TestError)
             EvaluatedErrors[err.Name()+TestPostfixKey+ErrorKey] = np.std(TestError)
             
+            if(useAUCScore):
+                TSAUC,TSAUCErr = AUCScore(model,trainingSet,device)
+                EvaluatedErrors[AUCKey+TSPostfixKey] = TSAUC
+                EvaluatedErrors[AUCKey+TSPostfixKey+ErrorKey] = TSAUCErr
+                
+                VSAUC,VSAUCErr = AUCScore(model,validationSet,device)
+                EvaluatedErrors[AUCKey+VSPostfixKey] = VSAUC
+                EvaluatedErrors[AUCKey+VSPostfixKey+ErrorKey] = VSAUCErr
+                
+                TestAUC,TestAUCErr = AUCScore(model,testSet,device)
+                EvaluatedErrors[AUCKey+TestPostfixKey] = TestAUC
+                EvaluatedErrors[AUCKey+TestPostfixKey+ErrorKey] = TestAUCErr
+
             if epoch%SaveAfterEpochs == 0:
                 ErrorDistributionTS["Epoch "+str(epoch)+" "+err.Name()] = tsError
                 ErrorDistributionVS["Epoch "+str(epoch)+" "+err.Name()] = vsError

@@ -13,7 +13,7 @@ from Trainers.BatchedTrainer import Trainer as BatchedTrainer
 from Benchmark import benchmark,initializeDevice
 from Evaluation.QuickOverview import plotOverview
 
-pathToSave = "AttentionsModel with Sines Test"
+pathToSave = "Test AUCScore"
 
 device = initializeDevice()
 Dimensions = 2 # Dataset dimensions
@@ -22,11 +22,11 @@ Dimensions = 2 # Dataset dimensions
 trainingSet,validationSet,testSet = Sines(Dimensions)
 #trainingSet,validationSet,testSet = DataSet(Dimensions,DataSet = "UMD")
 
-#model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
+model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 #model = LSTMAE(Dimensions,device,CellKind = "LSTM")
 #model = CNNAE(Dimensions,device)
 #model = CNNAE(Dimensions,device,hasFFTEncoder = True)
-model = AttentionModel(Dimensions,device)
+#model = AttentionModel(Dimensions,device)
 
 #trainer = OnlineTrainer(model,device)
 trainer = BatchedTrainer(model,device)
@@ -36,7 +36,7 @@ resultFolder = benchmark(trainingSet,
           testSet,
           model,
           trainer,
-          n_epochs=100,
+          n_epochs=10,
           pathToSave=pathToSave,
           device = device)
 
