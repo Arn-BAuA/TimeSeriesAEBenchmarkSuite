@@ -97,6 +97,8 @@ def scoreForRegularData(TrueLabels,PredLabels):
     return TP,FP,TN,FN
 
 import matplotlib.pyplot as plt
+import threading
+
 
 def AUCScore(model,DataSet,device,numberOfThresholdsTest = 20,EvaluateRegularDataOnIntervals = True):
     
@@ -136,34 +138,56 @@ def AUCScore(model,DataSet,device,numberOfThresholdsTest = 20,EvaluateRegularDat
     TPR=np.zeros(len(threshholds))
     FPR=np.zeros(len(threshholds))
 
+    class confusionCalculatorThread(threading.Thread):
+
+        def __init__(self,score,Errors,Threshhold,Labels):
+            threading.Thread.__init__(self)
+            self.score = score
+            self.Errors = Errors,
+            self.Threshhold = Threshhold
+            self.Labels = Labels
+            self.TP = 0
+            self.FP = 0
+            self.TN = 0
+            self.FN = 0
+
+        def run(self):
+            for i in range(0,len(self.Errors)):
+                predictedAnomalies = self.Errors[i]>self.Threshhold 
+
+                resultTP,resultFP,resultTN,resultFN = self.score(self.Labels[i],predictedAnomalies)
+                self.TP += resultTP
+                self.FP += resultFP
+                self.TN += resultTN
+                self.FN += resultFN
+
+            if self.TP+self.FN == 0:
+                self.TPR = 0
+            else:
+                self.TPR = float(self.TP)/float(self.TP+self.FN) 
+            if self.FP+self.FN == 0:
+                self.FPR = 0
+            else:
+                self.FPR = float(self.FP)/float(self.FP+self.TN)
+
+        def getResult(self):
+            return self.TPR,self.FPR
+
+    WorkerThreads = [0]*len(threshholds)
+
     for i,t in enumerate(threshholds):
+       WorkerThreads[i] = confusionCalculatorThread(score,Errors,t,Labels)
 
-        TP = 0 #True Positive
-        FP = 0 #False Positive
-        TN = 0 #True Negative
-        FN = 0 #False Negative
+    for thread in WorkerThreads:
+        thread.start()
 
-        for j,e in enumerate(Errors):
-            predictedAnomalies = e>t #
+    for thread in WorkerThreads:
+        thread.join()
 
-            resultTP,resultFP,resultTN,resultFN = score(Labels[j],predictedAnomalies)
-            TP += resultTP
-            FP += resultFP
-            TN += resultTN
-            FN += resultFN
-        
-
-        if TP+FN == 0:
-            TPR[i] = 0
-        else:
-            TPR[i] = float(TP)/float(TP+FN)
-        
-
-        if FP+FN == 0:
-            FPR[i] = 0
-        else:
-            FPR[i] = float(FP)/float(FP+TN)
-    
+    for i,thread in enumerate(WorkerThreads):
+        resultTPR,resultFPR = thread.getResult()
+        TPR[i] = resultTPR
+        FPR[i] = resultFPR
 
     #AUC According to right square rule quadrature
     rightSQRAUC = 0
