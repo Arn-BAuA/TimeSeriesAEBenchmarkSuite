@@ -98,7 +98,7 @@ def scoreForRegularData(TrueLabels,PredLabels):
 
 import matplotlib.pyplot as plt
 
-def AUCScore(model,DataSet,device,numberOfThresholdsTest = 20,EvaluateRegularDataOnIntervals = True):
+def AUCScore(model,DataSet,device,numberOfThresholdsTest = 20,EvaluateRegularDataOnIntervals = False):
     
     if DataSet.IsGeneratedFromClassificationDS():
         score = scoreForClassificationData

@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from BlockAndDatablock import DataBlock
 
+
 def sampleDataSet(dimensions,normalData,anomalData,anomalyPercentage,allNormalTheSame,nAnomalDimensions,allDimensionsAnomal):
     
     isAnomal = random() < (float(anomalyPercentage)/100.0)
@@ -57,7 +58,8 @@ def sampleDataSet(dimensions,normalData,anomalData,anomalyPercentage,allNormalTh
     tensorData = torch.tensor(data.values.astype(np.float32))
     return torch.stack([tensorData]),np.full(tensorData.size()[1],isAnomal)
 
-        
+def getDatasetsInArchive():
+    return UCRDatasets
 
 UCRPath = "data/UCR/UCRArchive_2018/"
 
@@ -127,6 +129,7 @@ def loadData(dimensions,**hyperParameters):
                                        HPs["AllDimensionsAnomal"]) 
     trainingBlock = DataBlock("UCR Archive - "+HPs["DataSet"],trainingSet,dimensions,**HPs)
     trainingBlock.setLabels(trainingAnomalyIndex)
+    trainingBlock.setGeneratedFromCDS(True)
 
     validationSet = [0]*HPs["ValidationSetSize"]
     validationAnomalyIndex = [0]*HPs["ValidationSetSize"]
@@ -141,6 +144,7 @@ def loadData(dimensions,**hyperParameters):
     
     validationBlock = DataBlock("UCR Archive - "+HPs["DataSet"],validationSet,dimensions,**HPs)
     validationBlock.setLabels(validationAnomalyIndex)
+    validationBlock.setGeneratedFromCDS(True)
 
     testSet = [0]*HPs["TestSetSize"]
     testAnomalyIndex = [0]*HPs["TestSetSize"]
@@ -155,5 +159,140 @@ def loadData(dimensions,**hyperParameters):
 
     testBlock = DataBlock("UCR Archive - "+HPs["DataSet"],testSet,dimensions,**HPs)
     testBlock.setLabels(testAnomalyIndex)
+    testBlock.setGeneratedFromCDS(True)
         
     return trainingBlock,validationBlock,testBlock
+
+UCRDatasets = {
+            "ACSF1",
+            "Adiac",
+            "AllGestureWiimoteX",
+            "AllGestureWiimoteY",
+            "AllGestureWiimoteZ",
+            "ArrowHead",
+            "Beef",
+            "BeetleFly",
+            "BirdChicken",
+            "BME",
+            "Car",
+            "CBF",
+            "Chinatown",
+            "ChlorineConcentration",
+            "CinCECGTorso",
+            "Coffee",
+            "Computers",
+            "CricketX",
+            "CricketY",
+            "CricketZ",
+            "Crop",
+            "DiatomSizeReduction",
+            "DistalPhalanxOutlineAgeGroup",
+            "DistalPhalanxOutlineCorrect",
+            "DistalPhalanxTW",
+            "DodgerLoopDay",
+            "DodgerLoopGame",
+            "DodgerLoopWeekend",
+            "Earthquakes",
+            "ECG200",
+            "ECG5000",
+            "ECGFiveDays",
+            "ElectricDevices",
+            "EOGHorizontalSignal",
+            "EOGVerticalSignal",
+            "EthanolLevel",
+            "FaceAll",
+            "FaceFour",
+            "FacesUCR",
+            "FiftyWords",
+            "Fish",
+            "FordA",
+            "FordB",
+            "FreezerRegularTrain",
+            "FreezerSmallTrain",
+            "Fungi",
+            "GestureMidAirD1",
+            "GestureMidAirD2",
+            "GestureMidAirD3",
+            "GesturePebbleZ1",
+            "GesturePebbleZ2",
+            "GunPoint",
+            "GunPointAgeSpan",
+            "GunPointMaleVersusFemale",
+            "GunPointOldVersusYoung",
+            "Ham",
+            "HandOutlines",
+            "Haptics",
+            "Herring",
+            "HouseTwenty",
+            "InlineSkate",
+            "InsectEPGRegularTrain",
+            "InsectEPGSmallTrain",
+            "InsectWingbeatSound",
+            "ItalyPowerDemand",
+            "LargeKitchenAppliances",
+            "Lightning2",
+            "Lightning7",
+            "Mallat",
+            "Meat",
+            "MedicalImages",
+            "MelbournePedestrian",
+            "MiddlePhalanxOutlineAgeGroup",
+            "MiddlePhalanxOutlineCorrect",
+            "MiddlePhalanxTW",
+            "Missing_value_and_variable_length_datasets_adjusted",
+            "MixedShapesRegularTrain",
+            "MixedShapesSmallTrain",
+            "MoteStrain",
+            "NonInvasiveFetalECGThorax1",
+            "NonInvasiveFetalECGThorax2",
+            "OliveOil",
+            "OSULeaf",
+            "PhalangesOutlinesCorrect",
+            "Phoneme",
+            "PickupGestureWiimoteZ",
+            "PigAirwayPressure",
+            "PigArtPressure",
+            "PigCVP",
+            "PLAID",
+            "Plane",
+            "PowerCons",
+            "ProximalPhalanxOutlineAgeGroup",
+            "ProximalPhalanxOutlineCorrect",
+            "ProximalPhalanxTW",
+            "RefrigerationDevices",
+            "Rock",
+            "ScreenType",
+            "SemgHandGenderCh2",
+            "SemgHandMovementCh2",
+            "SemgHandSubjectCh2",
+            "ShakeGestureWiimoteZ",
+            "ShapeletSim",
+            "ShapesAll",
+            "SmallKitchenAppliances",
+            "SmoothSubspace",
+            "SonyAIBORobotSurface1",
+            "SonyAIBORobotSurface2",
+            "StarLightCurves",
+            "Strawberry",
+            "SwedishLeaf",
+            "Symbols",
+            "SyntheticControl",
+            "ToeSegmentation1",
+            "ToeSegmentation2",
+            "Trace",
+            "TwoLeadECG",
+            "TwoPatterns",
+            "UMD",
+            "UWaveGestureLibraryAll",
+            "UWaveGestureLibraryX",
+            "UWaveGestureLibraryY",
+            "UWaveGestureLibraryZ",
+            "Wafer",
+            "Wine",
+            "WordSynonyms",
+            "Worms",
+            "WormsTwoClass",
+            "Yoga",
+    }
+
+
