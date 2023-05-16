@@ -74,7 +74,7 @@ def loadData(dimensions,**hyperParameters):
             "SameClassForAllDimensions":False,#when true: All dimensions are of the same class, else, they are random
             "AllDimensionsAnomal":False,#If this is true and the value is an anomaly, all the dimensions are an anomaly
             "nAnomalDimensions":1,#if it is an anomaly: How many dimensions are anomal
-            "SmallestClassAsAnomaly":False, #if true, the entrie of AnomalyClass is overwritten and the smalles class is taken as anomal.
+            "SmallestClassAsAnomaly":True, #if true, the entrie of AnomalyClass is overwritten and the smalles class is taken as anomal.
             "KeepTrainAndTestStructure":False,#if set true, the samples for training and validation are drawn from the TRAIN and TEST file in the UCR Archive. If set false, they will be mixed.
             "TrainingSetSize":400,
             "ValidationSetSize":100,
@@ -104,7 +104,8 @@ def loadData(dimensions,**hyperParameters):
     
 
     if HPs["SmallestClassAsAnomaly"]:
-        anomalyClass = min(trainingData.iloc[1].value_counts().iloc[2])    
+        nExamplesPClass = trainingData[trainingData.columns[0]].value_counts()
+        anomalyClass = nExamplesPClass.idxmin()
     else:
         anomalyClass = HPs["AnomalyClass"]
     
@@ -163,7 +164,7 @@ def loadData(dimensions,**hyperParameters):
         
     return trainingBlock,validationBlock,testBlock
 
-UCRDatasets = {
+UCRDatasets = [
             "ACSF1",
             "Adiac",
             "AllGestureWiimoteX",
@@ -239,7 +240,6 @@ UCRDatasets = {
             "MiddlePhalanxOutlineAgeGroup",
             "MiddlePhalanxOutlineCorrect",
             "MiddlePhalanxTW",
-            "Missing_value_and_variable_length_datasets_adjusted",
             "MixedShapesRegularTrain",
             "MixedShapesSmallTrain",
             "MoteStrain",
@@ -293,6 +293,6 @@ UCRDatasets = {
             "Worms",
             "WormsTwoClass",
             "Yoga",
-    }
+    ]
 
 
