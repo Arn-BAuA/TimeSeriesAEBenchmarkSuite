@@ -7,7 +7,11 @@ from copy import copy
 #predictions of the algorithm. This is, because 
 #the labeling is not consistent in the framework.
 #see DataBlock for explaination.
-def scoreForClassificationData(TrueLabels,PredLabels):
+def scoreForClassificationData(TrueLabels,error,treshhold):
+    #here,Error is a number
+
+    PredLabel = error>treshhold
+
     TP = 0 #True Positive
     FP = 0 #False Positive
     TN = 0 #True Negative
@@ -15,20 +19,22 @@ def scoreForClassificationData(TrueLabels,PredLabels):
 
     if 1 in TrueLabels:
         #By Construction of the DS: all 1, Anomaly
-        if 1 in PredLabels:
-            TP += 1  
+        if PredLabel:
+            TP += 1 
         else:
             FN += 1
     else:
         #all 0, no anomaly
-        if 0 in PredLabels:
+        if not PredLabel:
             TN += 1
         else:
             FP += 1
 
     return TP,FP,TN,FN
 
-def scorePointwise(TrueLabels,PredLabels):
+def scorePointwise(TrueLabels,error,treshhold):
+
+    PredLabels = error>treshhold 
 
     TP = np.count_nonzero(np.logical_and(np.equal(PredLabels,TrueLabels),np.equal(PredLabels, True)))
     FP = np.count_nonzero(np.logical_and(np.equal(PredLabels,np.logical_not(TrueLabels)),np.equal(PredLabels,True)))
@@ -43,7 +49,9 @@ def scorePointwise(TrueLabels,PredLabels):
 # Monotony for the ROC curve is not given.
 # This needs to be fixed.
 
-def scoreForRegularData(TrueLabels,PredLabels):
+def scoreForRegularData(TrueLabels,error,treshhold):
+    
+    PredLabels = error>treshhold 
     
     TP = 0 #True Positive
     FP = 0 #False Positive
@@ -98,8 +106,9 @@ def scoreForRegularData(TrueLabels,PredLabels):
 
 import matplotlib.pyplot as plt
 
-def AUCScore(model,DataSet,device,numberOfThresholdsTest = 20,EvaluateRegularDataOnIntervals = False):
+def AUCScore(model,DataSet,device,numberOfThresholdsTest = 100,EvaluateRegularDataOnIntervals = False):
     
+
     if DataSet.IsGeneratedFromClassificationDS():
         score = scoreForClassificationData
     else:
@@ -124,9 +133,15 @@ def AUCScore(model,DataSet,device,numberOfThresholdsTest = 20,EvaluateRegularDat
         seq_true = seq_true[0,:,:].to("cpu").detach().numpy()
         seq_pred = seq_pred[0,:,:].to("cpu").detach().numpy()
         
-        Errors[i] = np.mean(abs(seq_true-seq_pred),axis = 0)
-        if max(Errors[i]) > maxDeviation:
-            maxDeviation = max(Errors[i])
+        
+        if DataSet.IsGeneratedFromClassificationDS():
+            Errors[i] = np.mean(abs(seq_true-seq_pred))
+            if Errors[i] > maxDeviation:
+                maxDeviation = Errors[i]
+        else:
+            Errors[i] = np.mean(abs(seq_true-seq_pred),axis = 0)
+            if max(Errors[i]) > maxDeviation:
+                maxDeviation = max(Errors[i])
     
     threshholds = np.linspace(0,maxDeviation,numberOfThresholdsTest)
     
@@ -144,9 +159,8 @@ def AUCScore(model,DataSet,device,numberOfThresholdsTest = 20,EvaluateRegularDat
         FN = 0 #False Negative
 
         for j,e in enumerate(Errors):
-            predictedAnomalies = e>t #
 
-            resultTP,resultFP,resultTN,resultFN = score(Labels[j],predictedAnomalies)
+            resultTP,resultFP,resultTN,resultFN = score(Labels[j],e,t)
             TP += resultTP
             FP += resultFP
             TN += resultTN
@@ -163,7 +177,7 @@ def AUCScore(model,DataSet,device,numberOfThresholdsTest = 20,EvaluateRegularDat
             FPR[i] = 0
         else:
             FPR[i] = float(FP)/float(FP+TN)
-    
+        
 
     #AUC According to right square rule quadrature
     rightSQRAUC = 0

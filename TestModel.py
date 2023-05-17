@@ -19,8 +19,8 @@ device = initializeDevice()
 Dimensions = 2 # Dataset dimensions
 
 
-trainingSet,validationSet,testSet = Sines(Dimensions)
-#trainingSet,validationSet,testSet = DataSet(Dimensions,DataSet = "UMD")
+#trainingSet,validationSet,testSet = Sines(Dimensions)
+trainingSet,validationSet,testSet = DataSet(Dimensions,DataSet = "UMD")
 
 model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 #model = LSTMAE(Dimensions,device,CellKind = "LSTM")

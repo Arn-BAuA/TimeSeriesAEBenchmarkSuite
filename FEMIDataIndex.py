@@ -8,7 +8,9 @@
 from scipy.fft import rfft,rfftfreq
 import numpy as np
 
-def computeFFT(DataSet):
+import matplotlib.pyplot as plt
+
+def computeFFT(DataSet,returnPolarRepresentation=True):
     
     fftValues = [] 
     
@@ -39,76 +41,79 @@ def computeFFT(DataSet):
         #Reshaping:
         for dimension in range(0,DataSet.Dimension()):
             
-            ReVals = np.real(fft[dimension,:])
-            ImVals = np.imag(fft[dimension,:])
+            if returnPolarRepresentation:
+                AVals = np.abs(fft[dimension,:])
+                BVals = np.angle(fft[dimension,:])
+            else:
+                AVals = np.real(fft[dimension,:])
+                BVals = np.imag(fft[dimension,:])
             
 
-            singleDimData = np.array([ReVals,ImVals,fftFreq])
+            singleDimData = np.array([AVals,BVals,fftFreq])
             singleDimData = singleDimData.T
             fftValues.append(singleDimData)
 
     fftValues = np.concatenate(fftValues)
     
-    fftValues[:,0] = fftValues[:,0] * (1/maxFFTValue)
-    fftValues[:,1] = fftValues[:,1] * (1/maxFreqValue)
+    if returnPolarRepresentation:
+        fftValues[:,0] = fftValues[:,0] * (1/maxFFTValue)
+        fftValues[:,1] = fftValues[:,1] * (1/(2*np.pi))
+        fftValues[:,2] = fftValues[:,2] * (1/maxFreqValue)
+    else:
+        fftValues[:,0] = fftValues[:,0] * (1/maxFFTValue)
+        fftValues[:,1] = fftValues[:,1] * (1/maxFFTValue)
+        fftValues[:,2] = fftValues[:,2] * (1/maxFreqValue)
 
     return fftValues
 
 from Utility.klo.code.python.mikl import entkl as entropy
 
 #Normal an anomal data are datablocks
-def computeFEMIIndex(normalData,anomalData):
+def computeFEMIIndex(normalData,anomalData,polarFEMIIndex = True,noiseRegularisationMagnitude = 1e-5):
 
     #F =...
-    normalFFTValues = computeFFT(normalData)
-    anomalFFTValues = computeFFT(anomalData)
+    normalFFTValues = computeFFT(normalData,polarFEMIIndex)
+    #plt.scatter(normalFFTValues[:,2],normalFFTValues[:,0])
+    #plt.show()
+    #plt.close()
+    anomalFFTValues = computeFFT(anomalData,polarFEMIIndex)
+    #plt.scatter(anomalFFTValues[:,2],anomalFFTValues[:,0])
+    #plt.show()
+    #plt.close()
 
-    normalFFTValues = normalFFTValues + (np.random.rand(normalFFTValues.shape[0],normalFFTValues.shape[1])*1e-5)
-    anomalFFTValues = anomalFFTValues + (np.random.rand(anomalFFTValues.shape[0],anomalFFTValues.shape[1])*1e-5)
+    #This is sort of a regularisation to ensure, that the covariace matrix has full rank...
+    normalFFTValues = normalFFTValues + (np.random.rand(normalFFTValues.shape[0],normalFFTValues.shape[1])*noiseRegularisationMagnitude)
+    anomalFFTValues = anomalFFTValues + (np.random.rand(anomalFFTValues.shape[0],anomalFFTValues.shape[1])*noiseRegularisationMagnitude)
     
-    #print(normalFFTValues.shape)
-    #halt
-    E_normal = entropy(normalFFTValues)
-
-
-#    if not normalFFTValues.shape[0] == anomalFFTValues.shape[0]:
-#        commonLength = min([normalFFTValues.shape[0],anomalFFTValues.shape[0]])
-#        normalFFTValues = normalFFTValues[:commonLength]
-#        anomalFFTValues = anomalFFTValues[:commonLength]
-
-#   MI = mutualInformation(normalFFTValues,anomalFFTValues)
-
-    E_anomal = entropy(anomalFFTValues)
-    E_combined = entropy(np.concatenate([normalFFTValues,anomalFFTValues],axis = 1))
-
-
-    MI = E_normal+E_anomal-E_combined
+    #EEE
     
+    entropyCalculationFailed = False
+    
+    try:
+        E_normal = entropy(normalFFTValues)
+    except:
+        entropyCalculationFailed = True
+        E_normal = None
+    
+    try:
+        E_anomal = entropy(anomalFFTValues)
+        E_combined = entropy(np.concatenate([normalFFTValues,anomalFFTValues],axis = 1))
+    except:
+        entropyCalculationFailed = True
+
+    #MI
+    if not entropyCalculationFailed:
+        MI = E_normal+E_anomal-E_combined
+    else:
+        MI = None
+
     return E_normal,MI
 
-if __name__ == "__main__":
+def FEMIUCRTest():
     from SetWrappers.UCRArchive import loadData as DataSet
     from SetWrappers.UCRArchive import getDatasetsInArchive
     
     dataSets = getDatasetsInArchive()
-
-    print("Reproducibility Test:")
-    for setSize in [10,100,1000]:
-        valuesE = []
-        valuesMI = []
-        for i in range(0,10):
-            trainingSet,validationSet,testSet = DataSet(
-                                                            dimensions=1,
-                                                            TrainingSetSize = setSize,
-                                                            ValidationSetSize = setSize,
-                                                            TestSetSize = 0)
-    
-            E,MI = computeFEMIIndex(trainingSet,validationSet)
-            valuesE.append(E)
-            valuesMI.append(MI)
-        
-        print("For ",setSize," samples: E:",np.mean(valuesE)," +/- ",np.std(valuesE),"MI: ",np.mean(valuesMI)," +/- ",np.std(valuesMI))
-
     print("Test: on UCR")
 
     for dsName in dataSets:
@@ -126,4 +131,41 @@ if __name__ == "__main__":
     
             E,MI = computeFEMIIndex(trainingSet,validationSet)
             print("Anomaly Percentage :",a,"FEMI:",E,MI)
+    
 
+def FEMIReproducibilityTest():
+    from SetWrappers.UCRArchive import loadData as DataSet
+    print("Reproducibility Test:")
+    for setSize in [10,100,1000]:
+        valuesE = []
+        valuesMI = []
+        for i in range(0,10):
+            trainingSet,validationSet,testSet = DataSet(
+                                                            dimensions=1,
+                                                            TrainingSetSize = setSize,
+                                                            ValidationSetSize = setSize,
+                                                            TestSetSize = 0)
+    
+            E,MI = computeFEMIIndex(trainingSet,validationSet)
+            valuesE.append(E)
+            valuesMI.append(MI)
+        
+        print("For ",setSize," samples: E:",np.mean(valuesE)," +/- ",np.std(valuesE),"MI: ",np.mean(valuesMI)," +/- ",np.std(valuesMI))
+
+def FEMISinesTest():
+    from DataGenerators.Sines import generateData as Sines
+
+    print("Test on Sines")
+    for AnomalyAmplitude in np.linspace(1,2,11):
+        trainingSet,validationSet,testSet = Sines(dimensions=2,
+                                                  AnomalousFrequency = [[0.2],[0.3]],
+                                                  AnmalousAmplitudes =[[AnomalyAmplitude],[AnomalyAmplitude]],
+                                                TestSetSize=200
+                                                  )
+     
+        E,MI = computeFEMIIndex(trainingSet,testSet)
+        print("Anomaly Percentage :",AnomalyAmplitude,"FEMI:",E,MI)
+
+if __name__ == "__main__":
+    #FEMISinesTest()  
+    FEMIUCRTest()  
