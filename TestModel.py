@@ -22,9 +22,9 @@ Dimensions = 2 # Dataset dimensions
 #trainingSet,validationSet,testSet = Sines(Dimensions)
 trainingSet,validationSet,testSet = DataSet(Dimensions,DataSet = "UMD")
 
-model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
+#model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 #model = LSTMAE(Dimensions,device,CellKind = "LSTM")
-#model = CNNAE(Dimensions,device)
+model = CNNAE(Dimensions,device)
 #model = CNNAE(Dimensions,device,hasFFTEncoder = True)
 #model = AttentionModel(Dimensions,device)
 
@@ -36,7 +36,7 @@ resultFolder = benchmark(trainingSet,
           testSet,
           model,
           trainer,
-          n_epochs=10,
+          n_epochs=100,
           pathToSave=pathToSave,
           device = device)
 
