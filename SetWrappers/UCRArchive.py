@@ -61,7 +61,9 @@ def sampleDataSet(dimensions,normalData,anomalData,anomalyPercentage,allNormalTh
 def getDatasetsInArchive():
     return UCRDatasets
 
-UCRPath = "data/UCR/UCRArchive_2018/"
+import os
+dirname = os.path.dirname(__file__)
+UCRPath = os.path.join(dirname,"../data/UCR/UCRArchive_2018/")
 
 def loadData(dimensions,**hyperParameters):
 

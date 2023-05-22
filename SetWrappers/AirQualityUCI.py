@@ -10,7 +10,9 @@ import torch
 
 from BlockAndDatablock import DataBlock
 
-PathToAirqualityData = "data/AirQualityUCI.xlsx"
+import os
+dirname = os.path.dirname(__file__)
+PathToAirqualityData = os.path.join(dirname,"../data/AirQualityUCI.xlsx")
 
 #These Columns contain approximated values for some Metals
 # in the air. They look nice (smooth with bounded rate of 
