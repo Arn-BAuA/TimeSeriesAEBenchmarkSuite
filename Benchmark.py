@@ -13,7 +13,6 @@ def initializeDevice():
 
     return device
 
-pathForResults = "Results/"
 
 import os
 from datetime import datetime
@@ -59,14 +58,13 @@ def benchmark(trainingSet,validationSet,testSet,
     resultFolder = pathToSave
     if create_output:
         if inplace:
-            resultFolder = pathForResults + resultFolder
             
             if os.path.exists(resultFolder):
                 shutil.rmtree(resultFolder)
 
             os.mkdir(resultFolder)
         else:
-            resultFolder = pathForResults+createFolderWithTimeStamp(resultFolder)
+            resultFolder = createFolderWithTimeStamp(resultFolder)
     
     resultFolder += "/"
     ####################################
