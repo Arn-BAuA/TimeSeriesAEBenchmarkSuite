@@ -15,6 +15,21 @@ import os
 dirname = os.path.dirname(__file__)
 ECGPath = os.path.join(dirname,"../data/ECG/")
 
+def splitDataframeAlongRows(percentages,df,randomlySampleBeforeSplit = True):
+    
+    nRows = len(df.index)
+    
+    if randomlySampleBeforeSplit:
+        df = df.sample()
+    
+    #the indices at which we "cut" the dataframe
+    splitIndices = [0]
+
+    for i in range(len([:-1]):
+        splitIndices.append(splitIndices[-1]+int(p*nRows))
+
+
+
 def loadData(dimensions,**hyperParameters):
 
     defaultHyperParameters = {
@@ -38,46 +53,105 @@ def loadData(dimensions,**hyperParameters):
         }
     HPs={**defaultHyperParameters,**hyperParameters}
     
-    #trainingData = pd.read_csv(ECGPath+HPs["DataSet"]+"/"+HPs["DataSet"]+"_TRAIN.tsv",sep='\t',header=None)
-    #testData = pd.read_csv(UCRPath+HPs["DataSet"]+"/"+HPs["DataSet"]+"_TEST.tsv",sep='\t',header=None)
-    
-    #Loading sets
-    arrythmiaTest =
-    arrythmiaTrain = 
-    ptbNormal = 
-    ptbAnomal =
 
-    trainingDataNormal =
-    trainingDataAnomal =
-    validationDataNormal =
-    validationDataAnomal =
-    testDataNormal =
-    testDataAnormal = 
+    #Loading sets (These Dataframes are ment to be representations of the files in the class.)
+    arrythmiaTrain = pd.read_csv(ECGPath+"mitbih_train.csv",sep=',',header=None)
+    arrythmiaTest = pd.read_csv(ECGPath+"mitbih_test.csv",sep=',',header=None)
+    
+    #sorting out Arythmia classes that are not used.
+    classLabelsTotal = [0,1,2,3,4]
+    classLabelsUsed = HPs["ArrythmiaNormals"] + HPs["ArrythmiaAnomalys"]
+    
+    labelColumn = arrythmiaTrain.columns[-1] 
+    
+    for label in classLabelsTotal:
+        if not label in classLabelsUsed:
+            #label is not used
+            arrythmiaTrain.drop(arrythmiaTrain[arrythmiaTrain[labelColumn]==label].index)
+            arrythmiaTest.drop(arrythmiaTest[arrythmiaTest[labelColumn]==label].index)
+    
+    if HPs["UseArythmiaSplit"]:
+        totalPercentage = float(HPs["PrcentTrainingSet"]+HPs["PercentValidationSet"])
+        trainFactor = float(HPs["PercentTrainingSet"])/totalPercentage
+        validationFactor = float(HPs["PercentValidationSet"])/totalPercentage
+        arrythmiaTrain,arrythmiaValidation = splitDataframeAlongRows([trainFactor,validationFactor],arrythmiaTrain)
+    else:
+        totalPercentage = float(HPs["PrcentTrainingSet"]+HPs["PercentValidationSet"]+HPs["PercentageTestSet"])
+        trainFactor = float(HPs["PercentTrainingSet"])/totalPercentage
+        validationFactor = float(HPs["PercentValidationSet"])/totalPercentage
+        testFactor = float(HPs["PercentTestSet"])/totalPercentage
+        
+        arrythmiaTrain,arrythmiaValidation,arrythmiaTest = splitDataframeAlongRows([trainFactor,validationFactor,testFactor],pd.concat(arrythmiaTrain,arrythmiaTest))
+    
+    #Distributing Arythmia
+    trainingDataNormal = arrythmiaTrain[arrythmiaTrain[labelColumn] in HPs["ArrythmiaNormals"]]
+    trainingDataAnomal = arrythmiaTrain[arrythmiaTrain[labelColumn] in HPs["ArrythmiaAnomals"]]
+    validationDataNormal = arrythmiaValidation[arrythmiaValidation[labelColumn] in HPs["ArrythmiaNormals"]]
+    validationDataAnomal = arrythmiaValidation[arrythmiaValidation[labelColumn] in HPs["ArrythmiaAnomals"]]
+    testDataNormal = arrythmiaTest[arrythmiaTest[labelColumn] in HPs["ArrythmiaNormals"]]
+    testDataAnomal = arrythmiaTest[arrythmiaTest[labelColumn] in HPs["ArrythmiaAnomals"]]
 
 
-    
+    #Loading the PTB Sets if Necessairy.
+    PTBNormalsLoaded = False
+    PTBAnomalysLoaded = False
 
+    if not len(HPs["PTBNormals"]) == 0:
+        if HPs["PTBNormals"] == 1:
+            PTBNormals = pd.read_csv(ECGPath+"ptbdb_anormal.csv",sep=',',header=None)
+        else:
+            PTBNormals = pd.read_csv(ECGPath+"ptbdb_normal.csv",sep=',',header=None)
+        PTBNormalsLoaded = True
+    if not len(HPs["PTBAnomalys"]) == 0:
+        if HPs["PTBAnomalys"] == 1:
+            PTBAnomals = pd.read_csv(ECGPath+"ptbdb_anormal.csv",sep=:',',header=None)
+        else:
+            PTBAnomals = pd.read_csv(ECGPath+"ptbdb_normal.csv",sep=:',',header=None)
+        PTBAnomalysLoaded = True
     
+    if PTBAnomalysLoaded or PTBNormalsLoaded:
+        #Distributing the PTB-Sets
+        totalPercentage = float(HPs["PrcentTrainingSet"]+HPs["PercentValidationSet"]+HPs["PercentageTestSet"])
+        trainFactor = float(HPs["PercentTrainingSet"])/totalPercentage
+        validationFactor = float(HPs["PercentValidationSet"])/totalPercentage
+        testFactor = float(HPs["PercentTestSet"])/totalPercentage
+   
+        percentages = [trainFactor,validationFactor,testFactor]
+
+    if PTBNormalsLoaded:
+        PTBTrainDataNormal,PTBValidationDataNormal,PTBTestDataNormal= splitDataframeAlongRows(prcentages,PTBNormals)
+        
+        trainingDataNormal = pd.concat([PTBTrainDataNormal,trainingDataNormal]) 
+        validationDataNormal = pd.concat([PTBValidationDataNormal,validationDataNormal])
+        testDataNormal = pd.concat([PTBTestDataNormal,testDataNormal])
     
-    
+    if PTBAnomalysLoaded:
+        PTBTrainDataAnomal,PTBValidationDataAnomal,PTBTestDataAnomal= splitDataframeAlongRows(prcentages,PTBAnomals)
+        
+        trainingDataAnomal = pd.concat([PTBTrainDataAnomal,trainingDataAnomal]) 
+        validationDataAnomal = pd.concat([PTBValidationDataAnomal,validationDataAnomal])
+        testDataAnomal = pd.concat([PTBTestDataAnomal,testDataAnomal])
+
 
     #droping the first column with the labels
-    trainingData = trainingData.drop(trainingData.columns[-1],axis=1)
-    trainingAnomaly = trainingAnomaly.drop(trainingAnomaly.columns[-1],axis=1)
-    testData = testData.drop(testData.columns[-1],axis=1)
-    testAnomaly = testAnomaly.drop(testAnomaly.columns[-1],axis=1)
+    trainingDataNormal = trainingDataNormal.drop(labelColumn,axis=1)
+    trainingDataAnomal = trainingDataAnomaly.drop(labelColumn,axis=1)
+    validationDataNormal = validationDataNormal.drop(labelColumn,axis=1)
+    validationDataAnomal = validationDataAnomaly.drop(labelColumn,axis=1)
+    testDataNormal = testDataNormal.drop(labelColumn,axis=1)
+    testDataAnomal = testDataAnomaly.drop(labelColumn,axis=1)
 
     trainingSet = [0]*HPs["TrainingSetSize"]
     trainingAnomalyIndex = [0]*HPs["TrainingSetSize"]
     for i in range(0,HPs["TrainingSetSize"]):
         trainingSet[i],trainingAnomalyIndex[i] = sampleDataSet(dimensions,
-                                       trainingData,
-                                       trainingAnomaly,
+                                       trainingDataNormal,
+                                       trainingDataAnomal,
                                        HPs["AnomalyPercentageTrain"],
                                        HPs["SameClassForAllDimensions"],
                                        HPs["nAnomalDimensions"],
                                        HPs["AllDimensionsAnomal"]) 
-    trainingBlock = DataBlock("UCR Archive - "+HPs["DataSet"],trainingSet,dimensions,**HPs)
+    trainingBlock = DataBlock("ECG Dataset",trainingSet,dimensions,**HPs)
     trainingBlock.setLabels(trainingAnomalyIndex)
     trainingBlock.setGeneratedFromCDS(True)
 
@@ -85,14 +159,14 @@ def loadData(dimensions,**hyperParameters):
     validationAnomalyIndex = [0]*HPs["ValidationSetSize"]
     for i in range(0,HPs["ValidationSetSize"]):
         validationSet[i],validationAnomalyIndex[i] = sampleDataSet(dimensions,
-                                       trainingData,
-                                       trainingAnomaly,
+                                       validationDataNormal,
+                                       validationDataAnomaly,
                                        HPs["AnomalyPercentageValidation"],
                                        HPs["SameClassForAllDimensions"],
                                        HPs["nAnomalDimensions"],
                                        HPs["AllDimensionsAnomal"]) 
     
-    validationBlock = DataBlock("UCR Archive - "+HPs["DataSet"],validationSet,dimensions,**HPs)
+    validationBlock = DataBlock("ECG Dataset",validationSet,dimensions,**HPs)
     validationBlock.setLabels(validationAnomalyIndex)
     validationBlock.setGeneratedFromCDS(True)
 
@@ -100,14 +174,14 @@ def loadData(dimensions,**hyperParameters):
     testAnomalyIndex = [0]*HPs["TestSetSize"]
     for i in range(0,HPs["TestSetSize"]):
         testSet[i],testAnomalyIndex[i] = sampleDataSet(dimensions,
-                                       testData,
-                                       testAnomaly,
+                                       testDataNormal,
+                                       testDataAnomal,
                                        HPs["AnomalyPercentageTest"],
                                        HPs["SameClassForAllDimensions"],
                                        HPs["nAnomalDimensions"],
                                        HPs["AllDimensionsAnomal"]) 
 
-    testBlock = DataBlock("UCR Archive - "+HPs["DataSet"],testSet,dimensions,**HPs)
+    testBlock = DataBlock("ECG Dataset",testSet,dimensions,**HPs)
     testBlock.setLabels(testAnomalyIndex)
     testBlock.setGeneratedFromCDS(True)
         
