@@ -37,4 +37,53 @@ def RandomSampling(Data,numberOfSamples,sampleWindowSize,includeTime = False,dat
     
     return DataSet,AnomalyIndex
 
+def fromClassification2AnoDetect(dimensions,normalData,anomalData,anomalyPercentage,allNormalTheSame,nAnomalDimensions,allDimensionsAnomal):
+    
+    isAnomal = random() < (float(anomalyPercentage)/100.0)
+    anomalyLabel = 0
+    if isAnomal:
+        anomalyLabel = 1
+
+    if allDimensionsAnomal and isAnomal:
+        data = anomalData.sample(n=dimensions)
+        tensorData = torch.tensor(data.values.astype(np.float32))
+        return torch.transpose(tensorData,0,1)
+    
+    normalDimensions = np.arange(0,dimensions)
+    anomalDimensions = []
+    
+    if isAnomal:
+
+        for i in range(0,nAnomalDimensions):
+            dimensionIndex = int(len(normalDimensions)*random())
+            anomalDimensions.append(normalDimensions[dimensionIndex])
+            normalDimensions = np.delete(normalDimensions,dimensionIndex)
+    
+    if not len(anomalDimensions) <= 1:
+        anomalDimensions = np.array(anomalDimensions).sort()
+    
+
+    normalSource = normalData
+
+
+
+    if allNormalTheSame:
+        firstDimension = normalData.sample()
+        normalSource = normalData.loc[normalData[normalData.columns[0]] == firstDimesion.iloc[firstDimension.columns[0],0]] 
+        data = pd.concat([firstDimsnion,otherDimensions])
+    
+    dataElements = []
+
+    for i in range(0,dimensions):
+        if i in normalDimensions:
+            dataElements.append(normalSource.sample())
+            continue
+        if i in anomalDimensions:
+            dataElements.append(anomalData.sample())
+
+    data = pd.concat(dataElements)
+    tensorData = torch.tensor(data.values.astype(np.float32))
+    return torch.stack([tensorData]),np.full(tensorData.size()[1],isAnomal)
+
+
 
