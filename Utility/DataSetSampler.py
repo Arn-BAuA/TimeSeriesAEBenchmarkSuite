@@ -88,4 +88,45 @@ def fromClassification2AnoDetect(dimensions,normalData,anomalData,anomalyPercent
     return torch.stack([tensorData]),np.full(tensorData.size()[1],isAnomal)
 
 
+def splitDataframeAlongRows(percentages,df,randomlySampleBeforeSplit = True):
 
+    nRows = len(df.index)
+
+    if randomlySampleBeforeSplit:
+        df = df.sample(frac=1)
+
+    #the indices at which we "cut" the dataframe
+    cuttedDFs = [0]*len(percentages)
+    currentCutPosition = int(np.round(percentages[0]*nRows))
+    cuttedDFs[0] = df.iloc[0:currentCutPosition,:]
+
+    for i in range(1,len(percentages)):
+
+        if i == len(percentages)-1:
+            #to prevent rounding errors
+            newCutPosition = nRows
+        else:
+            newCutPosition = currentCutPosition + int(np.round(percentages[i])*nRows)
+
+
+        cuttedDFs[i] = df.iloc[currentCutPosition:newCutPosition,:]
+
+        currentCutPosition = newCutPosition
+
+
+    return (*cuttedDFs,)
+
+#returns a copy of df, containing only the rows of df, where the value of the label column is in labels
+def selectByLabel(df,labels,labelColumn,deleteLabelColumn = False):
+
+    dfComponentsByLabel = [0]*len(labels)
+
+    for i,label in enumerate(labels):
+        dfComponentsByLabel[i] = df[df[labelColumn] == label]
+
+    filteredDf = pd.concat(dfComponentsByLabel)
+
+    if deleteLabelColumn:
+        filteredDf = filteredDf.drop(labelColumn,axis = 1)
+
+    return filteredDf

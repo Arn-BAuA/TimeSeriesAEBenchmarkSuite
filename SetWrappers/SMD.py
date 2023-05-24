@@ -8,7 +8,7 @@ import os
 dirname = os.path.dirname(__file__)
 SMDPath = os.path.join(dirname,"../data/SMD/")
 
-def loadData(dimensions,**hyperParameters)
+def loadData(dimensions,**hyperParameters):
     
     defaultHyperParameters = {
             "machineType":1,#Machine type of the smd dataset (number between 0 and 1)
@@ -48,7 +48,7 @@ def loadData(dimensions,**hyperParameters)
 
         for dimension in Dimensions:
             d = int(dimension)
-            AnomalyInDimensions[d].append({"begin":AnoBegin,"end",AnoEnd})
+            AnomalyInDimensions[d].append({"begin":AnoBegin,"end":AnoEnd})
             AnomalyPercentage[d] += float(AnoEnd-AnoBegin)/nTestLines
 
     interpretationFile.close()
