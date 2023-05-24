@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import os
 
+from Utility.MathOperations import normalize
+
 dirname = os.path.dirname(__file__)
 SMDPath = os.path.join(dirname,"../data/SMD/")
 
@@ -16,6 +18,7 @@ def loadData(dimensions,**hyperParameters):
             "nNormalDimensions":0,#In the SMD Dataset are dimensions which don't contribute to any anomaly. these are the normal dimnsions. This algorithm selects the dimensions by anomaly. the most anomal one getts added fists, than the second and so forth. Except we demand normal dimensions by using this hyperparameter. If it is e.g. 3 we demand that the 3 least anomal dimensions are used as well.
             "ValidationSetContainsAnomalys":True,
             "ValidationSetSplit":50,# The percentage of the set where the validation set originates that is split off for the validation.
+            "NormalizeValues":True,
             "TrainingSetSize":400,
             "ValidationSetSize":100,
             "TestSetSize":30,
@@ -75,12 +78,16 @@ def loadData(dimensions,**hyperParameters):
     #Create Dataframe with selected dimensoins
     testData = testData.iloc[:,includedDimensions]
     trainingData = trainingData.iloc[:,includedDimensions]
+    
+    if HPs["NormalizeValues"]:
+        testData = normalize(testData)
+        trainingData = normalize(trainingData)
 
     #Creating Array Marking the Anomalys on testSet
     testSetAnomalys = np.zeros(len(testData.index))
     
     for dimension in includedDimensions:
-        for interval in AnomalyInDimensions:
+        for interval in AnomalyInDimensions[dimension]:
             testSetAnomalys[interval['begin']:interval['end']] = 1
     testData['Is Anomaly'] = testSetAnomalys
     trainingData['Is Anomaly'] = 0
@@ -99,7 +106,7 @@ def loadData(dimensions,**hyperParameters):
         validationData = trainingData.iloc[0:splitRow,:]
         trainingData = trainingData.iloc[splitRow:trainingSetLen,:]
 
-    
+     
     #Create Datasets / Splitting
     trainingData,trainingLabels = RandomSampling(trainingData,HPs["TrainingSetSize"],HPs["SampleLength"])
     trainingSet = DataBlock("SMD",trainingData,dimensions,**HPs)
