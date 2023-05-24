@@ -8,9 +8,6 @@ import torch
 from BlockAndDatablock import DataBlock
 from Utility.DataSetSampler import fromClassification2AnoDetect as sampleDataSet
 
-def getDatasetsInArchive():
-    return UCRDatasets
-
 import os
 dirname = os.path.dirname(__file__)
 ECGPath = os.path.join(dirname,"../data/ECG/")
@@ -20,13 +17,43 @@ def splitDataframeAlongRows(percentages,df,randomlySampleBeforeSplit = True):
     nRows = len(df.index)
     
     if randomlySampleBeforeSplit:
-        df = df.sample()
-    
-    #the indices at which we "cut" the dataframe
-    splitIndices = [0]
+        df = df.sample(frac=1)
 
-    for i in range(len([:-1]):
-        splitIndices.append(splitIndices[-1]+int(p*nRows))
+    #the indices at which we "cut" the dataframe
+    cuttedDFs = [0]*len(percentages)
+    currentCutPosition = int(np.round(percentages[0]*nRows))
+    cuttedDFs[0] = df.iloc[0:currentCutPosition,:]
+
+    for i in range(1,len(percentages)):
+        
+        if i == len(percentages)-1:
+            #to prevent rounding errors
+            newCutPosition = nRows
+        else:
+            newCutPosition = currentCutPosition + int(np.round(percentages[i])*nRows)
+
+        
+        cuttedDFs[i] = df.iloc[currentCutPosition:newCutPosition,:]
+        
+        currentCutPosition = newCutPosition
+    
+
+    return (*cuttedDFs,)
+
+#returns a copy of df, containing only the rows of df, where the value of the label column is in labels
+def selectByLabel(df,labels,labelColumn,deleteLabelColumn = False):
+    
+    dfComponentsByLabel = [0]*len(labels)
+
+    for i,label in enumerate(labels):
+        dfComponentsByLabel[i] = df[df[labelColumn] == label]
+
+    filteredDf = pd.concat(dfComponentsByLabel)
+
+    if deleteLabelColumn:
+        filteredDf = filteredDf.drop(labelColumn,axis = 1)
+
+    return filteredDf
 
 
 
@@ -71,12 +98,12 @@ def loadData(dimensions,**hyperParameters):
             arrythmiaTest.drop(arrythmiaTest[arrythmiaTest[labelColumn]==label].index)
     
     if HPs["UseArythmiaSplit"]:
-        totalPercentage = float(HPs["PrcentTrainingSet"]+HPs["PercentValidationSet"])
+        totalPercentage = float(HPs["PercentTrainingSet"]+HPs["PercentValidationSet"])
         trainFactor = float(HPs["PercentTrainingSet"])/totalPercentage
         validationFactor = float(HPs["PercentValidationSet"])/totalPercentage
         arrythmiaTrain,arrythmiaValidation = splitDataframeAlongRows([trainFactor,validationFactor],arrythmiaTrain)
     else:
-        totalPercentage = float(HPs["PrcentTrainingSet"]+HPs["PercentValidationSet"]+HPs["PercentageTestSet"])
+        totalPercentage = float(HPs["PercentTrainingSet"]+HPs["PercentValidationSet"]+HPs["PercentageTestSet"])
         trainFactor = float(HPs["PercentTrainingSet"])/totalPercentage
         validationFactor = float(HPs["PercentValidationSet"])/totalPercentage
         testFactor = float(HPs["PercentTestSet"])/totalPercentage
@@ -84,12 +111,12 @@ def loadData(dimensions,**hyperParameters):
         arrythmiaTrain,arrythmiaValidation,arrythmiaTest = splitDataframeAlongRows([trainFactor,validationFactor,testFactor],pd.concat(arrythmiaTrain,arrythmiaTest))
     
     #Distributing Arythmia
-    trainingDataNormal = arrythmiaTrain[arrythmiaTrain[labelColumn] in HPs["ArrythmiaNormals"]]
-    trainingDataAnomal = arrythmiaTrain[arrythmiaTrain[labelColumn] in HPs["ArrythmiaAnomals"]]
-    validationDataNormal = arrythmiaValidation[arrythmiaValidation[labelColumn] in HPs["ArrythmiaNormals"]]
-    validationDataAnomal = arrythmiaValidation[arrythmiaValidation[labelColumn] in HPs["ArrythmiaAnomals"]]
-    testDataNormal = arrythmiaTest[arrythmiaTest[labelColumn] in HPs["ArrythmiaNormals"]]
-    testDataAnomal = arrythmiaTest[arrythmiaTest[labelColumn] in HPs["ArrythmiaAnomals"]]
+    trainingDataNormal = selectByLabel(arrythmiaTrain,HPs["ArrythmiaNormals"],labelColumn)
+    trainingDataAnomal = selectByLabel(arrythmiaTrain,HPs["ArrythmiaAnomalys"],labelColumn)
+    validationDataNormal = selectByLabel(arrythmiaValidation,HPs["ArrythmiaNormals"],labelColumn)
+    validationDataAnomal = selectByLabel(arrythmiaValidation,HPs["ArrythmiaAnomalys"],labelColumn)
+    testDataNormal = selectByLabel(arrythmiaTest,HPs["ArrythmiaNormals"],labelColumn)
+    testDataAnomal = selectByLabel(arrythmiaTest,HPs["ArrythmiaAnomalys"],labelColumn)
 
 
     #Loading the PTB Sets if Necessairy.
@@ -104,14 +131,14 @@ def loadData(dimensions,**hyperParameters):
         PTBNormalsLoaded = True
     if not len(HPs["PTBAnomalys"]) == 0:
         if HPs["PTBAnomalys"] == 1:
-            PTBAnomals = pd.read_csv(ECGPath+"ptbdb_anormal.csv",sep=:',',header=None)
+            PTBAnomals = pd.read_csv(ECGPath+"ptbdb_anormal.csv",sep=',',header=None)
         else:
-            PTBAnomals = pd.read_csv(ECGPath+"ptbdb_normal.csv",sep=:',',header=None)
+            PTBAnomals = pd.read_csv(ECGPath+"ptbdb_normal.csv",sep=',',header=None)
         PTBAnomalysLoaded = True
     
     if PTBAnomalysLoaded or PTBNormalsLoaded:
         #Distributing the PTB-Sets
-        totalPercentage = float(HPs["PrcentTrainingSet"]+HPs["PercentValidationSet"]+HPs["PercentageTestSet"])
+        totalPercentage = float(HPs["PercentTrainingSet"]+HPs["PercentValidationSet"]+HPs["PercentTestSet"])
         trainFactor = float(HPs["PercentTrainingSet"])/totalPercentage
         validationFactor = float(HPs["PercentValidationSet"])/totalPercentage
         testFactor = float(HPs["PercentTestSet"])/totalPercentage
@@ -119,14 +146,14 @@ def loadData(dimensions,**hyperParameters):
         percentages = [trainFactor,validationFactor,testFactor]
 
     if PTBNormalsLoaded:
-        PTBTrainDataNormal,PTBValidationDataNormal,PTBTestDataNormal= splitDataframeAlongRows(prcentages,PTBNormals)
+        PTBTrainDataNormal,PTBValidationDataNormal,PTBTestDataNormal= splitDataframeAlongRows(percentages,PTBNormals)
         
         trainingDataNormal = pd.concat([PTBTrainDataNormal,trainingDataNormal]) 
         validationDataNormal = pd.concat([PTBValidationDataNormal,validationDataNormal])
         testDataNormal = pd.concat([PTBTestDataNormal,testDataNormal])
     
     if PTBAnomalysLoaded:
-        PTBTrainDataAnomal,PTBValidationDataAnomal,PTBTestDataAnomal= splitDataframeAlongRows(prcentages,PTBAnomals)
+        PTBTrainDataAnomal,PTBValidationDataAnomal,PTBTestDataAnomal= splitDataframeAlongRows(percentages,PTBAnomals)
         
         trainingDataAnomal = pd.concat([PTBTrainDataAnomal,trainingDataAnomal]) 
         validationDataAnomal = pd.concat([PTBValidationDataAnomal,validationDataAnomal])
@@ -135,11 +162,11 @@ def loadData(dimensions,**hyperParameters):
 
     #droping the first column with the labels
     trainingDataNormal = trainingDataNormal.drop(labelColumn,axis=1)
-    trainingDataAnomal = trainingDataAnomaly.drop(labelColumn,axis=1)
+    trainingDataAnomal = trainingDataAnomal.drop(labelColumn,axis=1)
     validationDataNormal = validationDataNormal.drop(labelColumn,axis=1)
-    validationDataAnomal = validationDataAnomaly.drop(labelColumn,axis=1)
+    validationDataAnomal = validationDataAnomal.drop(labelColumn,axis=1)
     testDataNormal = testDataNormal.drop(labelColumn,axis=1)
-    testDataAnomal = testDataAnomaly.drop(labelColumn,axis=1)
+    testDataAnomal = testDataAnomal.drop(labelColumn,axis=1)
 
     trainingSet = [0]*HPs["TrainingSetSize"]
     trainingAnomalyIndex = [0]*HPs["TrainingSetSize"]
@@ -160,7 +187,7 @@ def loadData(dimensions,**hyperParameters):
     for i in range(0,HPs["ValidationSetSize"]):
         validationSet[i],validationAnomalyIndex[i] = sampleDataSet(dimensions,
                                        validationDataNormal,
-                                       validationDataAnomaly,
+                                       validationDataAnomal,
                                        HPs["AnomalyPercentageValidation"],
                                        HPs["SameClassForAllDimensions"],
                                        HPs["nAnomalDimensions"],
@@ -186,136 +213,3 @@ def loadData(dimensions,**hyperParameters):
     testBlock.setGeneratedFromCDS(True)
         
     return trainingBlock,validationBlock,testBlock
-
-UCRDatasets = [
-            "ACSF1",
-            "Adiac",
-            "AllGestureWiimoteX",
-            "AllGestureWiimoteY",
-            "AllGestureWiimoteZ",
-            "ArrowHead",
-            "Beef",
-            "BeetleFly",
-            "BirdChicken",
-            "BME",
-            "Car",
-            "CBF",
-            "Chinatown",
-            "ChlorineConcentration",
-            "CinCECGTorso",
-            "Coffee",
-            "Computers",
-            "CricketX",
-            "CricketY",
-            "CricketZ",
-            "Crop",
-            "DiatomSizeReduction",
-            "DistalPhalanxOutlineAgeGroup",
-            "DistalPhalanxOutlineCorrect",
-            "DistalPhalanxTW",
-            "DodgerLoopDay",
-            "DodgerLoopGame",
-            "DodgerLoopWeekend",
-            "Earthquakes",
-            "ECG200",
-            "ECG5000",
-            "ECGFiveDays",
-            "ElectricDevices",
-            "EOGHorizontalSignal",
-            "EOGVerticalSignal",
-            "EthanolLevel",
-            "FaceAll",
-            "FaceFour",
-            "FacesUCR",
-            "FiftyWords",
-            "Fish",
-            "FordA",
-            "FordB",
-            "FreezerRegularTrain",
-            "FreezerSmallTrain",
-            "Fungi",
-            "GestureMidAirD1",
-            "GestureMidAirD2",
-            "GestureMidAirD3",
-            "GesturePebbleZ1",
-            "GesturePebbleZ2",
-            "GunPoint",
-            "GunPointAgeSpan",
-            "GunPointMaleVersusFemale",
-            "GunPointOldVersusYoung",
-            "Ham",
-            "HandOutlines",
-            "Haptics",
-            "Herring",
-            "HouseTwenty",
-            "InlineSkate",
-            "InsectEPGRegularTrain",
-            "InsectEPGSmallTrain",
-            "InsectWingbeatSound",
-            "ItalyPowerDemand",
-            "LargeKitchenAppliances",
-            "Lightning2",
-            "Lightning7",
-            "Mallat",
-            "Meat",
-            "MedicalImages",
-            "MelbournePedestrian",
-            "MiddlePhalanxOutlineAgeGroup",
-            "MiddlePhalanxOutlineCorrect",
-            "MiddlePhalanxTW",
-            "MixedShapesRegularTrain",
-            "MixedShapesSmallTrain",
-            "MoteStrain",
-            "NonInvasiveFetalECGThorax1",
-            "NonInvasiveFetalECGThorax2",
-            "OliveOil",
-            "OSULeaf",
-            "PhalangesOutlinesCorrect",
-            "Phoneme",
-            "PickupGestureWiimoteZ",
-            "PigAirwayPressure",
-            "PigArtPressure",
-            "PigCVP",
-            "PLAID",
-            "Plane",
-            "PowerCons",
-            "ProximalPhalanxOutlineAgeGroup",
-            "ProximalPhalanxOutlineCorrect",
-            "ProximalPhalanxTW",
-            "RefrigerationDevices",
-            "Rock",
-            "ScreenType",
-            "SemgHandGenderCh2",
-            "SemgHandMovementCh2",
-            "SemgHandSubjectCh2",
-            "ShakeGestureWiimoteZ",
-            "ShapeletSim",
-            "ShapesAll",
-            "SmallKitchenAppliances",
-            "SmoothSubspace",
-            "SonyAIBORobotSurface1",
-            "SonyAIBORobotSurface2",
-            "StarLightCurves",
-            "Strawberry",
-            "SwedishLeaf",
-            "Symbols",
-            "SyntheticControl",
-            "ToeSegmentation1",
-            "ToeSegmentation2",
-            "Trace",
-            "TwoLeadECG",
-            "TwoPatterns",
-            "UMD",
-            "UWaveGestureLibraryAll",
-            "UWaveGestureLibraryX",
-            "UWaveGestureLibraryY",
-            "UWaveGestureLibraryZ",
-            "Wafer",
-            "Wine",
-            "WordSynonyms",
-            "Worms",
-            "WormsTwoClass",
-            "Yoga",
-    ]
-
-

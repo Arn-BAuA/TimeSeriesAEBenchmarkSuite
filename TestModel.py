@@ -17,16 +17,17 @@ from Evaluation.QuickOverview import plotOverview
 pathToSave = "Results/TestECG"
 
 device = initializeDevice()
-Dimensions = 2 # Dataset dimensions
+Dimensions = 1 # Dataset dimensions
 
 
 #trainingSet,validationSet,testSet = Sines(Dimensions)
-trainingSet,validationSet,testSet = UCRDataSet(Dimensions,DataSet = "UMD")
-#trainingSet,validationSet,testSet = ECGDataSet(Dimensions)
+#trainingSet,validationSet,testSet = UCRDataSet(Dimensions,DataSet = "UMD")
+trainingSet,validationSet,testSet = ECGDataSet(Dimensions)
 
 #model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 #model = LSTMAE(Dimensions,device,CellKind = "LSTM")
-model = CNNAE(Dimensions,device)
+model = CNNAE(Dimensions,device,InputSize = trainingSet.Length())
+#
 #model = CNNAE(Dimensions,device,hasFFTEncoder = True)
 #model = AttentionModel(Dimensions,device)
 

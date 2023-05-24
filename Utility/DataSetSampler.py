@@ -39,6 +39,7 @@ def RandomSampling(Data,numberOfSamples,sampleWindowSize,includeTime = False,dat
 
 def fromClassification2AnoDetect(dimensions,normalData,anomalData,anomalyPercentage,allNormalTheSame,nAnomalDimensions,allDimensionsAnomal):
     
+    
     isAnomal = random() < (float(anomalyPercentage)/100.0)
     anomalyLabel = 0
     if isAnomal:
