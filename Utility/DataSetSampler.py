@@ -12,7 +12,8 @@ def RandomSampling(Data,numberOfSamples,sampleWindowSize,includeTime = False,dat
     sampleArea = Data.copy()
    
     if not includeTime:
-        sampleArea = sampleArea.drop(columns=[dateTimeColumn])
+        if dateTimeColumn in sampleArea.columns:
+            sampleArea = sampleArea.drop(columns=[dateTimeColumn])
     else:
         #conversion of datetime to timestamp for later conversion to pytorch tensor
         sampleArea[dateTimeColumn] = sampleArea[dateTimeColumn].values.astype(np.int64)
