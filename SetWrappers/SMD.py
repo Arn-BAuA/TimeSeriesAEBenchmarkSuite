@@ -27,8 +27,8 @@ def loadData(dimensions,**hyperParameters):
     machineName ="machine-"+str(HPs["machineType"])+"-"+str(HPs["machineIndex"])
 
     #Load All The Resources...
-    testData = pandas.read_csv(SMDPath+"test/"+machineName+".txt",sep=',',header=None)
-    trainingData = pandas.read_csv(SMDPath+"train/"+machineName+".txt",sep=',',header=None)
+    testData = pd.read_csv(SMDPath+"test/"+machineName+".txt",sep=',',header=None)
+    trainingData = pd.read_csv(SMDPath+"train/"+machineName+".txt",sep=',',header=None)
     
     nTestLines = float(len(testData.index))
 
