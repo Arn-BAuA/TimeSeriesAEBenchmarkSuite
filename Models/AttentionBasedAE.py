@@ -12,6 +12,7 @@ class Model(block,nn.Module): #Using Vaswani Et al's Transformer as heart of an 
                 "WordSize":20,
                 "nPreprocessorLayers":2,
                 "ActivationFunctionPreprocessor":"Tanh",
+                "FeedDirect":True,#if false, a linear feed forward network will be used instead of the embedding
                 "nAttentionHeads":4,
                 "nTrEncoderLayers":2,
                 "nTrDecoderLayers":2,
@@ -31,18 +32,23 @@ class Model(block,nn.Module): #Using Vaswani Et al's Transformer as heart of an 
         #Create Preprocessor
         self.beginOfWords =  np.floor(np.linspace(0,self.HP["InputSize"]-self.HP["WordSize"],self.HP["nWords"]))
         self.endOfWords = self.beginOfWords+self.HP["WordSize"]
-
-        self.PreprocessorNetwork = createLinearNetwork(
+        
+        if not self.HP["FeedDirect"]:
+            self.PreprocessorNetwork = createLinearNetwork(
                                                         InputSize = self.HP["WordSize"]*Dimensions,
                                                         OutputSize = self.HP["WordSize"],
                                                         nLayers = self.HP["nPreprocessorLayers"],
                                                         activationFunction = strToActivation(self.HP["ActivationFunctionPreprocessor"])() 
                                                         )
         
-        
+        if self.HP["FeedDirect"]:
+            tInputSize = self.HP["WordSize"]*self.Dimensions
+        else:
+            tInputSize = self.HP["WordSize"]
+
         #Create Transformer
         self.Transformer = nn.Transformer(
-                            d_model = self.HP["WordSize"],
+                            d_model = tInputSize,
                             nhead = self.HP["nAttentionHeads"],
                             num_encoder_layers = self.HP["nTrEncoderLayers"],
                             num_decoder_layers = self.HP["nTrDecoderLayers"],
@@ -50,15 +56,21 @@ class Model(block,nn.Module): #Using Vaswani Et al's Transformer as heart of an 
                             batch_first = True
                             )
 
-        #Create Postprocessor
-         
+        #Create Postprocessor 
+        if self.HP["FeedDirect"]:
+            ppInputSize = self.HP["WordSize"]*self.Dimensions*self.HP["nWords"]
+        else:
+            ppInputSize = self.HP["WordSize"]*self.HP["nWords"]
+        
         self.PostprocessorNetwork = createLinearNetwork(
-                                                        InputSize = self.HP["WordSize"]*self.HP["nWords"],
+                                                        InputSize = ppInputSize,
                                                         OutputSize = self.HP["InputSize"]*Dimensions,
                                                         nLayers = self.HP["nPostprocessorLayers"],
                                                         activationFunction = strToActivation(self.HP["ActivationFunctionPostprocessor"])() 
                                                         )
-        self.PreprocessorNetwork.to(device)
+        if not self.HP["FeedDirect"]:
+            self.PreprocessorNetwork.to(device)
+        
         self.Transformer.to(device)
         self.PostprocessorNetwork.to(device)
 
@@ -69,8 +81,12 @@ class Model(block,nn.Module): #Using Vaswani Et al's Transformer as heart of an 
 
         for i in range(0,self.HP["nWords"]):
             window = x[:,:,int(self.beginOfWords[i]):int(self.endOfWords[i])]
+            
             window = torch.flatten(window,start_dim=1)
-            embeddedWindows[i] = self.PreprocessorNetwork(window)
+            if self.HP["FeedDirect"]:
+                embeddedWindows[i] = window 
+            else:
+                embeddedWindows[i] = self.PreprocessorNetwork(window)
         
         #Transformer Stage
         transformerEncoderInput = torch.stack(embeddedWindows,dim = 1)

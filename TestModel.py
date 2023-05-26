@@ -26,12 +26,12 @@ Dimensions = 2 # Dataset dimensions
 #trainingSet,validationSet,testSet = ECGDataSet(Dimensions)
 trainingSet,validationSet,testSet = SMDDataSet(Dimensions,nNormalDimensions=1)
 
-model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
+#model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 #model = LSTMAE(Dimensions,device,CellKind = "LSTM")
 #model = CNNAE(Dimensions,device,InputSize = trainingSet.Length())
 #
 #model = CNNAE(Dimensions,device,hasFFTEncoder = True)
-#model = AttentionModel(Dimensions,device)
+model = AttentionModel(Dimensions,device)
 
 #trainer = OnlineTrainer(model,device)
 trainer = BatchedTrainer(model,device)
