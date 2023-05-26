@@ -132,6 +132,7 @@ def generate1DSines(dimension,BlendArray,time,**HPs):
                                                             time)
 
         Frequency = np.multiply(NormalFrequencyValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInFrequency"][dimension][i])) + np.multiply(AnomalFrequencyValues,BlendArray*HPs["AnomalyMagnitudeInFrequency"][dimension][i])
+        
 
 
         #Offset
@@ -153,7 +154,16 @@ def generate1DSines(dimension,BlendArray,time,**HPs):
 
  
         
-        sumOfSines += Offset+ np.multiply(Amplitude,np.sin(np.multiply(time,Frequency)))
+        if(HPs["ContinousFrequencyBlending"]):
+            timeDelta = np.zeros(len(time)) 
+            timeDelta[1:] = time[1:]-time[:-1]
+            advance = np.multiply(timeDelta,Frequency)
+            #Adding the advance together to get an argument for the sine
+            tTimesf = np.tril(np.ones([len(advance),len(advance)])).dot(advance)
+
+            sumOfSines += Offset+ np.multiply(Amplitude,np.sin(tTimesf))
+        else:
+            sumOfSines += Offset+ np.multiply(Amplitude,np.sin(np.multiply(time,Frequency)))
         
         sumOfSines += (random(len(sumOfSines))*2*HPs["NoiseLevel"])-HPs["NoiseLevel"]
     
@@ -227,6 +237,8 @@ def generateData(dimensions,**hyperParameters):
 
         "AnomaliesInTrainingdata" : False,
         "AnomaliesInValidationdata" :True,
+        
+        "ContinousFrequencyBlending":True, #..
 
         "AnomalyThreshold": 0.3,
         "AnomalyRampTime":          1,

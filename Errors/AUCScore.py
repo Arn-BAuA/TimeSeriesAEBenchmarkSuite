@@ -129,6 +129,12 @@ def AUCScore(model,DataSet,device,numberOfThresholdsTest = 100,EvaluateRegularDa
 
     Errors = [0]*len(DataSet.Data())
     Labels = DataSet.Labels()
+    
+    if usingCupy:
+        Labels = copy(Labels)
+        for i,label in enumerate(Labels):
+            Labels[i] = np.array(label)
+
     maxDeviation = 0
 
     model = model.to(device)
@@ -141,6 +147,9 @@ def AUCScore(model,DataSet,device,numberOfThresholdsTest = 100,EvaluateRegularDa
         seq_true = seq_true[0,:,:].to("cpu").detach().numpy()
         seq_pred = seq_pred[0,:,:].to("cpu").detach().numpy()
         
+        if usingCupy:
+            seq_true = np.array(seq_true)
+            seq_pred = np.array(seq_pred)
         
         if DataSet.IsGeneratedFromClassificationDS():
             Errors[i] = np.mean(abs(seq_true-seq_pred))

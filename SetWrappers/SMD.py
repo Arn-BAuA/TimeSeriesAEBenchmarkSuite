@@ -39,7 +39,9 @@ def loadData(dimensions,**hyperParameters):
     AnomalyPercentage = np.zeros(38)
     
     interpretationFile = open(SMDPath+"interpretation_label/"+machineName+".txt",'r')
-
+    
+    anomalysStartAt = float('inf')
+    
     for line in interpretationFile:
         
         AnoIndices,Dimensions = line.split(':')
@@ -48,6 +50,9 @@ def loadData(dimensions,**hyperParameters):
         AnoBegin = int(AnoBegin)
         AnoEnd = int(AnoEnd)
         Dimensions = Dimensions.split(",")
+
+        if AnoBegin < anomalysStartAt:
+            anomalysStartAt = AnoBegin
 
         for dimension in Dimensions:
             d = int(dimension)
@@ -91,33 +96,71 @@ def loadData(dimensions,**hyperParameters):
             testSetAnomalys[interval['begin']:interval['end']] = 1
     testData['Is Anomaly'] = testSetAnomalys
     trainingData['Is Anomaly'] = 0
-
-    #Perform the split for the Training-, Validation- and Test-Set.
+     
     if HPs["ValidationSetContainsAnomalys"]:
-        #Take Validation Set from Testset
+        
+        #THe problem we are trying to solve here is as follows: ANomalies are all realtively late in the SMD.
+        #If we just split somewhere in the middle for test and validation set, all the anomalies are in the latter set.
+        #Instead of doing that, we split where the anomalies begin, optaining two parts. Each of the to parts are than split
+        # down the middle and snippets are sampled porportional to the length of these individual splitted blocks.
+
         testSetLen = len(testData.index)
-        splitRow = int(testSetLen*(float(HPs["ValidationSetSplit"])/float(100)))
-        validationData = testData.iloc[0:splitRow,:]    
-        testData = testData.iloc[splitRow:testSetLen,:]
+        # Where to split
+        iEndWoAnomalies = anomalysStartAt
+        iTestWoAnomaliesStart = int(iEndWoAnomalies*(float(HPs["ValidationSetSplit"])/100.0))
+        
+        wAnomaliesLen = testSetLen - anomalysStartAt
+        iTestWAnomaliesStart = iEndWoAnomalies + int(wAnomaliesLen*(float(HPs["ValidationSetSplit"])/100.0))
+        
+
+        lenValWOAnomalies = iTestWoAnomaliesStart
+        lenTestWOAnomalies = iEndWoAnomalies - lenValWOAnomalies
+        lenValWAnomalies = iTestWAnomaliesStart - iEndWoAnomalies
+        lenTestWAnomalies = wAnomaliesLen - (iTestWAnomaliesStart - iEndWoAnomalies)
+        
+
+        #Number of samples proportional to the size of the split of the set.
+        nSamplesValWOAnomalies = int(HPs["ValidationSetSize"]*(float(lenValWOAnomalies)/float(lenValWOAnomalies+lenValWAnomalies)))
+        nSamplesValWAnomalies = HPs["ValidationSetSize"] - nSamplesValWOAnomalies
+        nSamplesTestWOAnomalies = int(HPs["TestSetSize"]*(float(lenTestWOAnomalies)/float(lenTestWAnomalies+lenTestWOAnomalies)))
+        nSamplesTestWAnomalies = HPs["TestSetSize"] - nSamplesTestWOAnomalies
+
+
+        #splittet of datasets        
+        vDataWOErrors = testData.iloc[:iTestWoAnomaliesStart,:]
+        vDataWErrors = testData.iloc[iEndWoAnomalies:iTestWAnomaliesStart,:]
+        tDataWOErrors = testData.iloc[iTestWoAnomaliesStart:iEndWoAnomalies,:]
+        tDataWErrors = testData.iloc[:iTestWAnomaliesStart,:]
+        #Sampling
+        vDataWErrors,vLabelsWErrors = RandomSampling(vDataWErrors,nSamplesValWAnomalies,HPs["SampleLength"])
+        vDataWOErrors,vLabelsWOErrors = RandomSampling(vDataWOErrors,nSamplesValWOAnomalies,HPs["SampleLength"])
+        
+        tDataWErrors,tLabelsWErrors = RandomSampling(tDataWErrors,nSamplesTestWAnomalies,HPs["SampleLength"])
+        tDataWOErrors,tLabelsWOErrors = RandomSampling(tDataWOErrors,nSamplesTestWOAnomalies,HPs["SampleLength"])
+
+        validationData = vDataWErrors+vDataWOErrors
+        validationLabels = vLabelsWErrors+vLabelsWOErrors
+        testData = tDataWErrors+tDataWOErrors
+        testLabels = tLabelsWErrors+tLabelsWOErrors
     else:
         #Take Validation Set from Trainingset
         trainingSetLen = len(trainingData.index)
-        splitRow = int(trainingSetLen*(float(HPs["ValidationSetSplit"])/float(100)))
+        splitRow = int(trainingSetLen*(float(HPs["ValidationSetSplit"])/100.0))
         validationData = trainingData.iloc[0:splitRow,:]
         trainingData = trainingData.iloc[splitRow:trainingSetLen,:]
 
-     
+        validationData,validationLabels = RandomSampling(validationData,HPs["ValidationSetSize"],HPs["SampleLength"])
+        testData,testLabels = RandomSampling(testData,HPs["TestSetSize"],HPs["SampleLength"])
+
     #Create Datasets / Splitting
     trainingData,trainingLabels = RandomSampling(trainingData,HPs["TrainingSetSize"],HPs["SampleLength"])
     trainingSet = DataBlock("SMD",trainingData,dimensions,**HPs)
     trainingSet.setLabels(trainingLabels)
-
-    validationData,validationLabels = RandomSampling(validationData,HPs["ValidationSetSize"],HPs["SampleLength"])
+    
     validationSet = DataBlock("SMD",validationData,dimensions,**HPs)
     validationSet.setLabels(validationLabels)
     
-    testData,testLabels = RandomSampling(testData,HPs["TestSetSize"],HPs["SampleLength"])
     testSet = DataBlock("SMD",testData,dimensions,**HPs)
     testSet.setLabels(testLabels)
-
+    
     return trainingSet,validationSet,testSet

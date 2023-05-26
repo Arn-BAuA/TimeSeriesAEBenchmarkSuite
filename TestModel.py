@@ -22,15 +22,15 @@ Dimensions = 2 # Dataset dimensions
 
 
 #trainingSet,validationSet,testSet = Sines(Dimensions)
-trainingSet,validationSet,testSet = UCRDataSet(Dimensions,DataSet = "UMD")
+#trainingSet,validationSet,testSet = UCRDataSet(Dimensions,DataSet = "UMD")
 #trainingSet,validationSet,testSet = ECGDataSet(Dimensions)
-#trainingSet,validationSet,testSet = SMDDataSet(Dimensions,nNormalDimensions=1)
+trainingSet,validationSet,testSet = SMDDataSet(Dimensions,nNormalDimensions=1)
 
-#model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
+model = FeedForwardAE(Dimensions,device,InputSize = trainingSet.Length())
 #model = LSTMAE(Dimensions,device,CellKind = "LSTM")
 #model = CNNAE(Dimensions,device,InputSize = trainingSet.Length())
 #
-model = CNNAE(Dimensions,device,hasFFTEncoder = True)
+#model = CNNAE(Dimensions,device,hasFFTEncoder = True)
 #model = AttentionModel(Dimensions,device)
 
 #trainer = OnlineTrainer(model,device)
