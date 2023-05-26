@@ -18,6 +18,7 @@ class Model(block,nn.Module):
                 "LatentSize":0.2, #size of the latent space in relation to the input
                 "LayerSequenceDec":[0.5,0.7], #size of the layer in relation to the input
                 "hasFFTEncoder":False, #if true, a second encoder, beside the time encoder is added, that porcesses the fft. 
+                "HanningWindowBeforeFFT":True, #Uses the Hanning window before computing the FFT, if FFT encoder is there...
                 "GlueLayerSize":2, #There is a stack of perceptrons that takes the output of the FFT- and TimeDecoder and Broadcasts them to the encoder input. That stack can have a height, specified here.
                 "hasOnlyFFTEncoder":False,#if true, only a fft encoder is provided
                 "ActivationFunction":"ReLU", #activation function used perceptrons across the net
@@ -90,6 +91,8 @@ class Model(block,nn.Module):
             layers = self.createLayers([1]+self.HP["LayerSequenceEnc"]+[self.HP["LatentSize"]])
             self.FFTEncoder = nn.Sequential(*layers)
             self.FFTEncoder.to(device)
+            if self.HP["HanningWindowBeforeFFT"]:
+                self.hanningWindow = torch.hann_window(self.HP["InputSize"]).to(device)
 
         if self.hasGlueLayer:
             #Create Glue Layer
@@ -124,7 +127,11 @@ class Model(block,nn.Module):
         if self.hasTimeEncoder:
             xTime = self.TimeEncoder(x)
         if self.hasFFTEncoder:
-            xFFT = torch.fft.rfft(x)
+            if self.HP["HanningWindowBeforeFFT"]:
+                fftInputX = x[:,:] * self.hanningWindow
+            else:
+                fftInputX = x
+            xFFT = torch.fft.rfft(fftInputX)
             xFFT =xFFT.abs()
             xFFT = torch.cat([xFFT,torch.zeros([xFFT.size()[0],self.Dimensions,self.HP["InputSize"]-xFFT.size()[-1]]).to(self.device)],dim = -1)
             xFFT = self.FFTEncoder(xFFT)

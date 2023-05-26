@@ -30,7 +30,7 @@ class Trainer(block):
         self.optimizer = torch.optim.Adam(model.parameters(),lr = 1e-3)
         self.criterion = nn.L1Loss(reduction = "sum").to(device)
 
-        if self.HPs["UseHistory"]:
+        if self.HP["UseHistory"]:
             self.best_loss = float('inf')
     
     def __prepareBatches(self,nBatches,BatchSize,dataSet):
@@ -52,8 +52,8 @@ class Trainer(block):
 
     #Batching and Augmentation would be done here....
     def setDataSets(self,trainingSet,validationSet):
-        self.trainBatches = self.__prepareBatches(self.HPs["nTrainBatches"],self.HPs["TrainBatchSize"],trainingSet)
-        self.validationBatches = self.__prepareBatches(self.HPs["nValidationBatches"],self.HPs["ValidationBatchSize"],validationSet)
+        self.trainBatches = self.__prepareBatches(self.HP["nTrainBatches"],self.HP["TrainBatchSize"],trainingSet)
+        self.validationBatches = self.__prepareBatches(self.HP["nValidationBatches"],self.HP["ValidationBatchSize"],validationSet)
         
 
     def doEpoch(self,model):
@@ -72,7 +72,7 @@ class Trainer(block):
 
         model = model.eval()
         
-        if self.HPs["UseHistory"]:
+        if self.HP["UseHistory"]:
             val_loss = []
     
             with torch.no_grad():
@@ -93,7 +93,7 @@ class Trainer(block):
         return model
 
     def finalizeTraining(self,model):
-        if self.HPs["UseHistory"]:
+        if self.HP["UseHistory"]:
             if self.best_loss < float('inf'):
                 #this means, that the model has been trained before, so that the self.best_model_wts exists
-            model.load_state_dict(self.best_model_wts)
+                model.load_state_dict(self.best_model_wts)

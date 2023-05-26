@@ -1,5 +1,13 @@
 import torch
-import numpy as np
+try:
+    import cupy as np
+    usingCupy = True
+    print("AUC Score: Using cupy")
+except:
+    import numpy as np
+    usingCupy = False
+    print("AUC Score: Using nupy")
+
 from copy import copy
 
 
@@ -192,8 +200,11 @@ def AUCScore(model,DataSet,device,numberOfThresholdsTest = 100,EvaluateRegularDa
     AUC = (leftSQRAUC + rightSQRAUC)/2
     #the DIfference between the two righthand rules as error
     errAUC = (rightSQRAUC-leftSQRAUC)/2
-
-    return AUC,errAUC
+    
+    if usingCupy:
+        return AUC.get(),errAUC.get()
+    else:
+        return AUC,errAUC
 
 
 if __name__ == "__main__":
