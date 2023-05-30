@@ -250,7 +250,7 @@ def generateData(dimensions,**hyperParameters):
 
 
         "TrainingSetSize": 200,
-        "ValidationSetSize":50,
+        "ValidationSetSize":100,
         "TestSetSize" : 30,
         "SampleWindowSize":150,
     }

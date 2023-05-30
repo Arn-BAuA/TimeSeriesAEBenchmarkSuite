@@ -41,26 +41,36 @@ class Model(block,nn.Module): #Plain Feed Forward Encoder....
             Layers = np.concatenate([Layers,np.flip(Layers[:-1])])
             self.HP["LayerSequence"] = Layers
         
-
-        LayerStack = [0]*(2*len(self.HP["LayerSequence"])-3)
-        
-        #Adding the input/output size to the front and end of the layer stack.
-        actualSequence = np.ceil(self.HP["LayerSequence"]*inputLen).astype(int)
-       
-        for i in range(0,len(actualSequence)-2):
-
-            nLastLayer = actualSequence[i]
-            if nLastLayer == 0:
-                nLastLayer = 1
+        if len(self.HP["LayerSequence"] == 1):
+            LayerStack = [0]*(3)
             
-            nThisLayer = actualSequence[i+1]
-            if nThisLayer == 0:
-                nThisLayer = 1
+            numNeuronsMiddle = int(np.ceil(self.HP["LayerSequence"][0]*inputLen))
 
-            LayerStack[2*i] = torch.nn.Linear(nLastLayer,nThisLayer)
-            LayerStack[2*i + 1] = strToActivation(self.HP["ActivationFunction"])()
+            LayerStack[0] = torch.nn.Linear(inputLen,numNeuronsMiddle)
+            LayerStack[1] = strToActivation(self.HP["ActivationFunction"])()
+            LayerStack[2] = torch.nn.Linear(numNeuronsMiddle,inputLen)
         
-        LayerStack[-1] = torch.nn.Linear(actualSequence[-2],actualSequence[-1])
+
+        else:
+            LayerStack = [0]*(2*len(self.HP["LayerSequence"])-3)
+        
+            #Adding the input/output size to the front and end of the layer stack.
+            actualSequence = np.ceil(self.HP["LayerSequence"]*inputLen).astype(int)
+       
+            for i in range(0,len(actualSequence)-2):
+
+                nLastLayer = actualSequence[i]
+                if nLastLayer == 0:
+                    nLastLayer = 1
+            
+                nThisLayer = actualSequence[i+1]
+                if nThisLayer == 0:
+                    nThisLayer = 1
+
+                LayerStack[2*i] = torch.nn.Linear(nLastLayer,nThisLayer)
+                LayerStack[2*i + 1] = strToActivation(self.HP["ActivationFunction"])()
+        
+            LayerStack[-1] = torch.nn.Linear(actualSequence[-2],actualSequence[-1])
         
         #Todo: Clean up and activationfunction as Hyperparameter
         self.model = nn.Sequential(*LayerStack)

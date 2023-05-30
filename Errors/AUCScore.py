@@ -1,5 +1,8 @@
 import torch
 try:
+    #Using cupy turns out to sometimes make things worse due to excessive coputation cost for creating large arrays.
+    jalt
+
     import cupy as np
     usingCupy = True
     print("AUC Score: Using cupy")
@@ -114,7 +117,7 @@ def scoreForRegularData(TrueLabels,error,treshhold):
 
 import matplotlib.pyplot as plt
 
-def AUCScore(model,DataSet,device,numberOfThresholdsTest = 100,EvaluateRegularDataOnIntervals = False):
+def AUCScore(model,DataSet,device,numberOfThresholdsTest = 100,EvaluateRegularDataOnIntervals = False,maxDatapointsFromDF = 100):
     
 
     if DataSet.IsGeneratedFromClassificationDS():
