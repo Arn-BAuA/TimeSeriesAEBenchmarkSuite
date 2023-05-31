@@ -93,64 +93,68 @@ def getSingleParameterVariation(value, #center of the interval of possible value
     retVal = parameterValues+value
     return retVal
 
+#Idea : Normally, you would need the 16 parameters, that make up normal and anomal sines defined in the hyper parameter array form for every sine. But if you just wanna quickly test how your network is handling high dimensional data characterised by a smaller parameter set, this "rolling around" access to the arrays stops the generator from going out of bounds
+def rollingRead(arrayName,dimension,**HPs):
+    return HPs[arrayName][dimension%len(HPs[arrayName])]
+
 def generate1DSines(dimension,BlendArray,time,**HPs):
     
     sumOfSines = np.zeros(len(time))
 
-    for i in range(0,len(HPs["Amplitudes"][dimension])):
+    for i in range(0,len(rollingRead("Amplitudes",dimension,**HPs))):
         
         #Amplitude
-        NormalAmplitudeValues = getSingleParameterVariation(HPs["Amplitudes"][dimension][i],
-                                                            HPs["AmplitudeSpan"][dimension][i],
+        NormalAmplitudeValues = getSingleParameterVariation(rollingRead("Amplitudes",dimension,**HPs)[i],
+                                                            rollingRead("AmplitudeSpan",dimension,**HPs)[i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        AnomalAmplitudeValues = getSingleParameterVariation(HPs["AnomalousAmplitudes"][dimension][i],
-                                                            HPs["AnomalousAmplitudeSpan"][dimension][i],
+        AnomalAmplitudeValues = getSingleParameterVariation(rollingRead("AnomalousAmplitudes",dimension,**HPs)[i],
+                                                            rollingRead("AnomalousAmplitudeSpan",dimension,**HPs)[i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        Amplitude = np.multiply(NormalAmplitudeValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInAmplitude"][dimension][i])) + np.multiply(AnomalAmplitudeValues,BlendArray*HPs["AnomalyMagnitudeInAmplitude"][dimension][i])
+        Amplitude = np.multiply(NormalAmplitudeValues,np.ones(len(BlendArray))-(BlendArray*rollingRead("AnomalyMagnitudeInAmplitude",dimension,**HPs)[i])) + np.multiply(AnomalAmplitudeValues,BlendArray*rollingRead("AnomalyMagnitudeInAmplitude",dimension,**HPs)[i])
 
         #Frequency
-        NormalFrequencyValues = getSingleParameterVariation(HPs["Frequency"][dimension][i],
-                                                            HPs["FrequencySpan"][dimension][i],
+        NormalFrequencyValues = getSingleParameterVariation(rollingRead("Frequency",dimension,**HPs)[i],
+                                                            rollingRead("FrequencySpan",dimension,**HPs)[i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        AnomalFrequencyValues = getSingleParameterVariation(HPs["AnomalousFrequency"][dimension][i],
-                                                            HPs["AnomalousFrequencySpan"][dimension][i],
+        AnomalFrequencyValues = getSingleParameterVariation(rollingRead("AnomalousFrequency",dimension,**HPs)[i],
+                                                            rollingRead("AnomalousFrequencySpan",dimension,**HPs)[i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        Frequency = np.multiply(NormalFrequencyValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInFrequency"][dimension][i])) + np.multiply(AnomalFrequencyValues,BlendArray*HPs["AnomalyMagnitudeInFrequency"][dimension][i])
+        Frequency = np.multiply(NormalFrequencyValues,np.ones(len(BlendArray))-(BlendArray*rollingRead("AnomalyMagnitudeInFrequency",dimension,**HPs)[i])) + np.multiply(AnomalFrequencyValues,BlendArray*rollingRead("AnomalyMagnitudeInFrequency",dimension,**HPs)[i])
         
 
 
         #Offset
-        NormalOffsetValues = getSingleParameterVariation(HPs["Offset"][dimension][i],
-                                                            HPs["OffsetSpan"][dimension][i],
+        NormalOffsetValues = getSingleParameterVariation(rollingRead("Offset",dimension,**HPs)[i],
+                                                            rollingRead("OffsetSpan",dimension,**HPs)[i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        AnomalOffsetValues = getSingleParameterVariation(HPs["AnomalousOffset"][dimension][i],
-                                                            HPs["AnomalousOffsetSpan"][dimension][i],
+        AnomalOffsetValues = getSingleParameterVariation(rollingRead("AnomalousOffset",dimension,**HPs)[i],
+                                                            rollingRead("AnomalousOffsetSpan",dimension,**HPs)[i],
                                                             HPs["SystemChangeRate"],
                                                             HPs["MaxSystemVelocity"],
                                                             HPs["Duration"],
                                                             time)
 
-        Offset = np.multiply(NormalOffsetValues,np.ones(len(BlendArray))-(BlendArray*HPs["AnomalyMagnitudeInOffset"][dimension][i])) + np.multiply(AnomalOffsetValues,BlendArray*HPs["AnomalyMagnitudeInOffset"][dimension][i])
+        Offset = np.multiply(NormalOffsetValues,np.ones(len(BlendArray))-(BlendArray*rollingRead("AnomalyMagnitudeInOffset",dimension,**HPs)[i])) + np.multiply(AnomalOffsetValues,BlendArray*rollingRead("AnomalyMagnitudeInOffset",dimension,**HPs)[i])
 
  
         
@@ -198,7 +202,7 @@ def generateSet(numSamples,containsAnomalies,dimensions,**HPs):
     data["Is Anomaly"] = IsAnomaly
     
     for i in range(0,dimensions):
-        data["Dimension "+str(i+1)] = generate1DSines(i,BlendArray*HPs["AnomalyInDimension"][i],Time,**HPs)
+        data["Dimension "+str(i+1)] = generate1DSines(i,BlendArray*rollingRead("AnomalyInDimension",i,**HPs),Time,**HPs)
 
     DataSet,IsAnomaly = RandomSampling(data,numSamples,HPs["SampleWindowSize"],includeTime = False,dateTimeColumn = "Time")
    
