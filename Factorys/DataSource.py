@@ -1,5 +1,10 @@
 # THe data source factory module. With all the methods to easylie access diffrent datasets.
 
+from SetWrappers.UCRArchive import loadData as UCRDataSet
+from SetWrappers.SMD import loadData as SMDDataSet
+from SetWrappers.ECGDataSet import loadData as ECGDataSet
+from DataGenerators.Sines import generateData as Sines
+
 selectedUCRSets = [
             "ACSF1",
             "AllGestureWiimoteX",
