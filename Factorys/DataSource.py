@@ -36,7 +36,7 @@ selectedUCRSets = [
 
 numDataSrcs = 32
 
-def getStandardDataSource(dimensions,DataSrcNumber,**hyperParameters):
+def getStandardDataSource(Dimensions,DataSrcNumber,**hyperParameters):
 
     if DataSrcNumber == 0:
         return Sines(Dimensions,**hyperParameters)
