@@ -9,6 +9,8 @@
 # content and hyperparameters are mostly used together.
 # THe block and datablock classes handle the interface and hyperparameter management
 
+import torch
+
 # abstract class for trainer and model to handle the hyperparameters
 class block():
     
@@ -48,6 +50,12 @@ class DataBlock(block):
         self.Dimensions = Dimensions
         self.haslabels = False
         self.isGeneratedFromClassificationDS = False
+        self.minIsCalculated = False
+        self.min = float("Inf")
+        self.maxIsCalculated = False
+        self.max = float("-Inf")
+        self.std = 0
+        self.stdIsCalculated = False
 
     #if you have labeled data or you are using a data generator, you can add
     #the gound truth here. It should be an array of the same size as the set,
@@ -86,4 +94,32 @@ class DataBlock(block):
 
     def Length(self):
         return self.Dataset[0].shape[2]
+    
+    def Min(self):
+        if self.minIsCalcualted:
+            return self.min
+        else:
+            for d in self.Dataset:
+                if d.min < self.min:
+                    self.min=d.min
+            self.minIsCalculated = True
+            return self.min
+        
+    def Max(self):
+        if self.maxIsCalcualted:
+            return self.max
+        else:
+            for d in self.DataSet:
+                if d.max < self.max:
+                    self.max=d.max
+            self.maxIsCalculated = True
+            return self.max
+    
+    def std(self):
+        if self.stdIsCalculated:
+            return self.std
+        else:
+            self.std = torch.std(torch.stack(self.Dataset,dim=-1))
+            self.stdIsCalculated = True
+            return self.std
 
