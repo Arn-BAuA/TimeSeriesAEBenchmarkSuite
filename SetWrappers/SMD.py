@@ -31,7 +31,9 @@ def loadData(dimensions,**hyperParameters):
 
     #Load All The Resources...
     testData = pd.read_csv(SMDPath+"test/"+machineName+".txt",sep=',',header=None)
+    testData.fillna(0)
     trainingData = pd.read_csv(SMDPath+"train/"+machineName+".txt",sep=',',header=None)
+    trainingData.fillna(0)
     
     nTestLines = float(len(testData.index))
 
@@ -153,14 +155,16 @@ def loadData(dimensions,**hyperParameters):
         testData,testLabels = RandomSampling(testData,HPs["TestSetSize"],HPs["SampleLength"])
 
     #Create Datasets / Splitting
+    dsNames = "SMD ("+machineName+")"
+
     trainingData,trainingLabels = RandomSampling(trainingData,HPs["TrainingSetSize"],HPs["SampleLength"])
-    trainingSet = DataBlock("SMD",trainingData,dimensions,**HPs)
+    trainingSet = DataBlock(dsNames,trainingData,dimensions,**HPs)
     trainingSet.setLabels(trainingLabels)
     
-    validationSet = DataBlock("SMD",validationData,dimensions,**HPs)
+    validationSet = DataBlock(dsNames,validationData,dimensions,**HPs)
     validationSet.setLabels(validationLabels)
     
-    testSet = DataBlock("SMD",testData,dimensions,**HPs)
+    testSet = DataBlock(dsNames,testData,dimensions,**HPs)
     testSet.setLabels(testLabels)
     
     return trainingSet,validationSet,testSet

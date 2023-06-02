@@ -68,12 +68,21 @@ def loadData(dimensions,**hyperParameters):
         arrythmiaTrain,arrythmiaValidation,arrythmiaTest = splitDataframeAlongRows([trainFactor,validationFactor,testFactor],pd.concat(arrythmiaTrain,arrythmiaTest))
     
     #Distributing Arythmia
-    trainingDataNormal = selectByLabel(arrythmiaTrain,HPs["ArrythmiaNormals"],labelColumn)
-    trainingDataAnomal = selectByLabel(arrythmiaTrain,HPs["ArrythmiaAnomalys"],labelColumn)
-    validationDataNormal = selectByLabel(arrythmiaValidation,HPs["ArrythmiaNormals"],labelColumn)
-    validationDataAnomal = selectByLabel(arrythmiaValidation,HPs["ArrythmiaAnomalys"],labelColumn)
-    testDataNormal = selectByLabel(arrythmiaTest,HPs["ArrythmiaNormals"],labelColumn)
-    testDataAnomal = selectByLabel(arrythmiaTest,HPs["ArrythmiaAnomalys"],labelColumn)
+    if len(HPs["ArrythmiaNormals"] + HPs["ArrythmiaAnomalys"]) ==0:
+    
+        trainingDataNormal = pd.DataFrame() 
+        trainingDataAnomal = pd.DataFrame() 
+        validationDataNormal = pd.DataFrame() 
+        validationDataAnomal = pd.DataFrame() 
+        testDataNormal = pd.DataFrame() 
+        testDataAnomal = pd.DataFrame() 
+    else:
+        trainingDataNormal = selectByLabel(arrythmiaTrain,HPs["ArrythmiaNormals"],labelColumn)
+        trainingDataAnomal = selectByLabel(arrythmiaTrain,HPs["ArrythmiaAnomalys"],labelColumn)
+        validationDataNormal = selectByLabel(arrythmiaValidation,HPs["ArrythmiaNormals"],labelColumn)
+        validationDataAnomal = selectByLabel(arrythmiaValidation,HPs["ArrythmiaAnomalys"],labelColumn)
+        testDataNormal = selectByLabel(arrythmiaTest,HPs["ArrythmiaNormals"],labelColumn)
+        testDataAnomal = selectByLabel(arrythmiaTest,HPs["ArrythmiaAnomalys"],labelColumn)
 
 
     #Loading the PTB Sets if Necessairy.
