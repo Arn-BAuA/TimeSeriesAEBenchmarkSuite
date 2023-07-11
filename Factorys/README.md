@@ -1,0 +1,3 @@
+
+![](../.mdpictures/Banners/Factories.png)
+
