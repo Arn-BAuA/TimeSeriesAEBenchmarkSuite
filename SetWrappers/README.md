@@ -20,8 +20,7 @@ Anomalies are included at random at a rate the user can choose individually for 
 
 The hyperparameters are documented in the code:
 
-
-<pre><co
+<pre><code>
     defaultHyperParameters = {
             "ArrythmiaNormals":[0],#Classes from arrythmia that are used as normals, none, if left emty
             "ArrythmiaAnomalys":[1,2,3,4],#classes from arrythmia that are used as anomalies, none if left empty
@@ -41,5 +40,41 @@ The hyperparameters are documented in the code:
             "ValidationSetSize":100,
             "TestSetSize":30,
         }
-de>
+</pre></code>
+
+## UCRArchive
+
+This is a setwrapper for the 2018 time series classification archive (https://www.cs.ucr.edu/~eamonn/time_series_data_2018/).<br>
+The UCR-Archive is a collection of different time series data sets from different domains. The Aim here is to create a collection of data sets for benchmarking that covers most of the things that can be encountered in the field.<br>
+There is also a UCR anomaly detection archive, which we are not supporting at the moment.<br>
+The Archive consist of multiple univariate time series datasets with class labels.
+
+### Short Description
+
+This data set wrapper has much in common with the wrapper for the ECG-Set. It creates the three sets for the framework by randomly sampling time series snippets from the archive.<br>
+It can also output multivariate data by stitching univariate examples on top of each other.<br>
+Anomalies are added at random at a rate, the user can set individually for the three sets. Anomalies either occur in some or all dimensions of a given example of the time series.
+
+### Hyperparameters:
+
+The hyperparameters are documented in the code:
+
+<pre><code>
+defaultHyperParameters = {
+            "DataSet":"UMD",#Name of the dataset
+            "AnomalyClass":3,#Class that is picked as anomal
+            "AnomalyPercentageTrain":0,#Percentage of anomalies in training set
+            "AnomalyPercentageValidation":10, #percentage of anomalies in validation set
+            "AnomalyPercentageTest":10,# percentage of anomalies in test set
+            "SameClassForAllDimensions":False,#when true: All dimensions are of the same class, else, they are random
+            "AllDimensionsAnomal":False,#If this is true and the value is an anomaly, all the dimensions are an anomaly
+            "nAnomalDimensions":1,#if it is an anomaly: How many dimensions are anomal
+            "SmallestClassAsAnomaly":True, #if true, the entrie of AnomalyClass is overwritten and the smalles class is taken as anomal.
+            "KeepTrainAndTestStructure":False,#if set true, the samples for training and validation are drawn from the TRAIN and TEST file in the UCR Archive. If set false, they will be mixed.
+            "TrainingSetSize":400,
+            "ValidationSetSize":100,
+            "TestSetSize":30,
+        }
+
+
 </pre></code>
