@@ -111,3 +111,36 @@ defaultHyperParameters = {
 </pre></code>
 
 ## AirQualityUCI
+
+The air quality UCI data set (https://www.kaggle.com/datasets/aayushkandpal/air-quality-time-series-data-uci) contains air quality measurements that where taken in a city in italia between 2004 and 2005.<br>
+The data is unlabeled and contains some passages where data is missing.
+
+### Short Description
+
+The data set basically contains one large time series that is the complete measurement. The algorithm cuts randomly sampled snippets out of the time sereis.<br>
+The user can specify which portions of the time series should be sampled for each of the three output sets.<br>
+This wrapper is currently not up to date with the rest of the library.
+
+### Hyperparameters
+
+The hyperparameters are documented in the code.
+
+<pre><code>
+    defaultHyperParameters = {
+            "sampleWindowSize" : 150,
+            "includeTimeStamps" :False,
+            #Due to the missing values in the DF which are not cleand, we create the oportunity to
+            # chose manually, which intervals to use for which set. THe Dates are chosen in such a way,
+            # that there are more holes in the test set than in the training set.
+            "TrainingSetSize" : 1000,
+            "BeginDateTrainingData" : datetime(2004,4,1),
+            "EndDateTrainingData" : datetime(2005,1,1),
+            "ValidationSetSize" : 100,
+            "BeginDateValidationData" : datetime(2005,1,1),
+            "EndDateValidationData" : datetime(2005,3,1),
+            "TestSetSize" : 30,
+            "BeginDateTestData" : datetime(2005,3,1),
+            "EndDateTestData" : datetime(2005,4,1),
+            }
+ 
+</pre></code>
