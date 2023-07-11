@@ -78,3 +78,36 @@ defaultHyperParameters = {
 
 
 </pre></code>
+
+## SMD-Setwrapper
+
+The SMD (Server Machine Dataset) is a set containing multivariate telemetry data from different servers. Anomalies are labeled. The set has been published along side the OmnyAnomaly-algorithm (https://github.com/NetManAIOps/OmniAnomaly).<br>
+
+### Short Description:
+
+The SMD contians telemetry data from roughly 30 machines. The data is stored in long time series. Anomalies only manifest them selves in a portion of the dimensions of the time series. The timestamps and the dimension at which anomalies occur are labeled.<br>
+The Wrapper cuts small snippets out of the huge time series for one machine and, if demanded, reduces the dimensions to a number of dimensions specified by the user.<br>
+When reducing dimensions, the algorithm sorts the dimensions according to the number of anomalies that manifest in them. The once with the most anomalies are kept. In addition, the user can specify to include a number of dimensions with low anomaly count, leading essentially to the possibility to specify how many of the reduced dimensions should be normal and how many should contain anomalies.<br>
+The user can also specify the rate at which anomalies occur for each individual dimension.
+
+### Hyperparameters
+
+
+<pre><code>
+defaultHyperParameters = {
+            "machineType":1,#Machine type of the smd dataset (number between 0 and 1)
+            "machineIndex":1,#the machine index from the SMD Dataset
+            "nNormalDimensions":0,#In the SMD Dataset are dimensions which don't contribute to any anomaly. these are the normal dimnsions. This algorithm selects the dimensions by anomaly. the most anomal one getts added fists, than the second and so forth. Except we demand normal dimensions by using this hyperparameter. If it is e.g. 3 we demand that the 3 least anomal dimensions are used as well.
+            "ValidationSetContainsAnomalys":True,
+            "ValidationSetSplit":50,# The percentage of the set where the validation set originates that is split off for the validation.
+            "NormalizeValues":True,
+            "TrainingSetSize":400,
+            "ValidationSetSize":100,
+            "TestSetSize":30,
+            "SampleLength":150,# The length of the snippets that are generated.
+        }
+
+
+</pre></code>
+
+## AirQualityUCI
