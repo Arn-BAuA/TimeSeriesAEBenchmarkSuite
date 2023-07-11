@@ -45,7 +45,7 @@ At the moment, there is only an installation script for linux. Users of other op
 The installation script sets up a virtual environment, containing all the classes necessairy to run the framework. In addition, it downloads and manages the data sets that have to be present for the set wrappers to function.<br>
 Here is a list of things You need to prepare for a smooth installation:
 
-* The shellscript downloads the UCR-Archive for You and manages it. How ever, the UCR-Archive is password protected. The password can be found on the UCR-Website (https://www.cs.ucr.edu/~eamonn/time\_series\_data\_2018/).
+* The shellscript downloads the UCR-Archive for You and manages it. How ever, the UCR-Archive is password protected. The password can be found on the UCR-Website (https://www.cs.ucr.edu/~eamonn/time_series_data_2018/).
 You will be promted to enter the password during the installation.
 * The SWaT datasets are not publically available. To obtain them you need to apply at: https://docs.google.com/forms/d/e/1FAIpQLSdwOIR-LuFnSu5cIAzun5OQtWXcsOhmC7NtTbb-LBI1MyOcug/viewform.
 
