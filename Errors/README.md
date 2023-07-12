@@ -23,7 +23,7 @@ in the original is caluclated.
 * The AUC is than calculated using a quadrature (numeric integration).
 * The AUC is approximated with the trapezoid rule, the error of the AUC is the difference between the left-hand- and the right-hand- square rule, which for a monotone function, is an exact measure for the possible worst case sampling error.
 
-###Some comments on that:
+### Some comments on that:
 * There are two types of labeled anomalies: The once, where actual anomalies are labeled in the data, and the once, where the whole time series snippet is marked anomalous. This is a result of the different data set wrappers used. In some occasions, like for the SMD, the data it self comes with labeled anomalies. In this case, the labels are simply loaded.<br>
 In the case of e.g. UCR or ECG, where classes are labeled anomalous, not points in the series, the complete snippet, where an anomalous class is depicted is marked anomalous. <br>
 The way, the algorithm is evaluated is different in these two situations, since, in the latter one, we don't know, which points make a given class anomalous. In the first case, we know exact points in time. <br>
