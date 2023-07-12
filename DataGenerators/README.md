@@ -93,7 +93,6 @@ Anomaly duration is the duration of the anomalies, Ramp time is the time that th
         "Duration":                 2000,#duration of the timeseries in the dataset 
         "RandomSeed":               1,
         "SampleWindowSize":150,
-    }
 </pre></code>
 
 These arguments are importand for the sampling of the created tim series.
