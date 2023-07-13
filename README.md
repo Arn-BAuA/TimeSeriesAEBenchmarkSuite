@@ -8,7 +8,7 @@ This repository houses a benchmark environment for reconstruction based multivar
 The intendet usecase for the repository is to be included as a submodule in other projects. In addition to the benchmark functionality the model provides, the 
 object oriented interfaces defined here can also be used, to quickly build novel algorithms like e. g. ensemble methods.<br>
 ### Core Building Blocks:
-The model is build around the following modular buildingblocks:<br>
+The model is build around the following modular buildingblocks. A brief explanation of the block and their role is given below. For more indepth information on the diffrent blocks, check out the README files in the corresponding folders.:<br>
 
 * The Data - Time sereies data can either be provided in the form of a SetWrapper or a DataGenerator. Either of the two implements the same interface. 
 They provide a method that outputs three datasets that can be used for training, validating and testing the anomaly detection algorithms. For more informations 
