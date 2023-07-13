@@ -3,6 +3,7 @@ models
 plots
 fwVenv
 __pychache__
+*.__pychache__
 *.pdf
 Results
 *.swp
