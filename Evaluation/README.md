@@ -1,4 +1,4 @@
-# Evaluation Methods:
+![](../.mdpictures/Banners/Evaluation.png)
 
 This repository features a variety of premade evaluation functions. At the moment, most of them are plot scripts, that take the data that was created during a single benchmark run and visualize it.<br>
 The greate exception is the HTMLSummary.py, which creates a ml-ops like html overview that unifies the plot scirpts. <br>

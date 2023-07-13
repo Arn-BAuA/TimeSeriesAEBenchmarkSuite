@@ -3,6 +3,7 @@
 
 The models in this framework all implement the same interface. They are subclasses of block, to handle the hyperparamters. They all take said hyperparameters, the dimension of the input stream and the compute device as constructor input, and they all are also subclasses of torch.nn.module.<br>
 In the forward function, that the nn.Module objects have to overwrite in order to define the calculation done in the module, they all take a time series as an input and return a time series of similar dimensionality as output.<br>
+There are some empty files here which are reminders for model ideas that are not implemented at the moment.
 In the next few sections we describe the diffrent models in this package in detail.
 
 ## Feed Forward Autoencoder
@@ -133,5 +134,5 @@ In our implementation, we replaced the dictionary with a neural network, that ta
 
 ### Some Notes
 
-* There are some state of the art time series anomaly detection algorithms that use the attention mechanism (https://arxiv.org/pdf/2201.07284.pdf,https://arxiv.org/pdf/2110.02642.pdf). How ever, they are not reconstruction based. Instead, they try to predict if a value is abnormal, based on the attention mechanism.
+* There are some state of the art time series anomaly detection algorithms that use the attention mechanism (https://arxiv.org/pdf/2201.07284.pdf , https://arxiv.org/pdf/2110.02642.pdf). How ever, they are not reconstruction based. Instead, they try to predict if a value is abnormal, based on the attention mechanism.
 * In the current version of the transformer, there is a bug in the postprocessor, precenting it from reaching output values that are not in the interval of [-1,1]. W are working on it...

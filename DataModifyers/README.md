@@ -1,4 +1,5 @@
-# Data Modifiers
+
+![](../.mdpictures/Banners/DataModifiers.png)
 
 Data Modifiers can be used to modify data... .. .<br>
 They take a data set, along with some other modifier specific parameters and output a dataset with the modification applied.
