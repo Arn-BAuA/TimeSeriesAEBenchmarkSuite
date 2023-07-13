@@ -58,9 +58,15 @@ Cell kind can have the two values "LSTM" and "GRU".
 ### Some Notes
 
 When training the network with mostly default settings on the batched trainer (batch size = 10, learning rate in the adam optimizer = 0.001) we noticed, that the loss "jumps" when plotted against the epochs. The loss function remains stationary for many epochs, and than suddently reaches another value. This new value is in some cases higher, in some cases lower then the previous one. We do not know if this behaviour can be omitted by fine tuning the learning rate or a diffrent batching strategy.<br>
-As a hot fix for this, it may be advantageous to include a history for the training, like for the LSTM based approach that is shown in this blog (our very first  prototype implementation of this library  was based on it and we kept the history functionality ever since... https://curiousily.com/posts/time-series-anomaly-detection-using-lstm-autoencoder-with-pytorch-in-python/).
+As a hot fix for this, it may be advantageous to include a history for the training, like for the LSTM based approach that is shown in this blog (our very first  prototype implementation of this framework was based on it and we kept the history functionality ever since... https://curiousily.com/posts/time-series-anomaly-detection-using-lstm-autoencoder-with-pytorch-in-python/).
 
 ## Convolutional Autoencoder
+
+This model resembles an auto encoder that is based on a convolutional neural network.<br>
+The convolutional layers consist of one torch.nn.Conv1D layer, followed by a torch.nn.BatchNorm1D layer. Afterward, there is a linear layer, where the size of the output of the first two layers is transformed (either smaller or lager depending on the size of the next convolutional layer). This sequence of four is ended with a layer of activation functions. <br>
+Following an approach that was suggested in this blog post (https://www.kaggle.com/code/purplejester/pytorch-deep-time-series-classification), we included a second endocer that is a twin of the first one, with the exception that this encoder processes the fourier transform of the given time series, instead of the time domain representation. In our implementation, the user can decide wheter the model should use both encoders in parallel, only the time domain one or only the frequency domain one. <br>
+As an addition, it is possible to add a hanning window before fourier transform. <br>
+If both encoders are used, the number of valueas in the two encoder outputs is reduced, to fit the standard decoder, that takes inputs of the same size as the output of a single encoder. This reduction is done by a feed forward neural network. The size of the layers is linear interpolated, similar to the feed forward autoencoder. This network is called the glue layer.<br>
 
 ### Model Details
 
@@ -86,7 +92,23 @@ As a hot fix for this, it may be advantageous to include a history for the train
  
 </code></pre>
 
+### Note on the Hanning Window
+
+The fourier transform is designed for periodic functions. If the fourier transform of a finite snippet of a function is taken, one implicitly assumes, that the snipper repeats it self over and over. This curcumstance, that is often not true in reality leads to artefacts, due to components in the fourier spectrum that relate to that assumed periodicity. This is especially a problem when the values at the boundary of the transformed snippet don't line up. THe dicontinuity araising there introduces storng, high frequent artifacts. Taking the hanning window dampens the function at the boundary in a way that no artifacts result in the fourier transform. THe traidoff here is that the hanning window takes away information from the input. The gain is, that after windowing, everything that remains in the specturm is a feature of the transformed sereis. We choose to make the hanning window optional, since in an ideal world, the network that processes the raw fft would be able to "learn" the relevant portions and perhaps be able to extract more information than there is left after windowing, while not falling for the artifacts.
+
+### Other Notes
+
+* The DownsampleBeforePooling functionality is not implemented at the moment.
+* At the moment, the FFT encoder is lager than it needs to be. It has the same size as the time series in time domain. The values of the FFT are bounded by the nyquist sampling theorem. This number is smaller, than the number of points in the time domina. We have to address this issue at some point.
+
 ## Attention Based Autoencoder
+
+This model uses the transformer implementation of pytorch, which is designed following the "attention is all you need" transformer (https://proceedings.neurips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf) to process time series.<br>
+The intuition behind this model is as follows: Natural language is very hard to process. What makes it so difficult to process natural language is (beside some other things) its context sensitivity. Even in normal plain speach, a situation can arraise, where one small sentence changes the meaning of an entire text passage. This is in contrast to say e.g. image data, where the value of one pixel mostly depends on the pixel in the surrounding area.<br>
+Transformer models are succsessful in natural language processing tasks, because the attention mechanism can handle these contextual dependencies. The idea is, that time series can also show this context sensitive dependencies and similar to language, time series also have an intrinsic dependency on time. Since there are similarities between time series and natural language, the assumption is, that the transformer is also performing well when interpreting time series.<br>
+For simple protoryping we decided to use the pre implemented transformer from pytorch in this version of the model. The main challenge was to feed the time series into the transformer in a way that makes sence.<br>
+When the transformer is used to process natural languages, the words are embedded into an array of vectors. Depending on the implementation, either a mathematical function or a neural network is used for this task (post processor network). The output of the transformer again is a vector that can be mapped onto a dictionary to produce output sentences.<br>
+In our implementation, we replaced the dictionary with a neural network, that takes the output of the transformer and maps it to a tensor of the same dimensionalty as the input.<br>. Instead of words, snippets of the time series are processed. The snippets are either fed directly into the transformer, or get transformed by a feed forward neural network (preprocessor network).
 
 ### Model Details
 
@@ -109,3 +131,7 @@ As a hot fix for this, it may be advantageous to include a history for the train
                 "ActivationFunctionPostprocessor":"Tanh",}
 </code></pre>
 
+### Some Notes
+
+* There are some state of the art time series anomaly detection algorithms that use the attention mechanism (https://arxiv.org/pdf/2201.07284.pdf,https://arxiv.org/pdf/2110.02642.pdf). How ever, they are not reconstruction based. Instead, they try to predict if a value is abnormal, based on the attention mechanism.
+* In the current version of the transformer, there is a bug in the postprocessor, precenting it from reaching output values that are not in the interval of [-1,1]. W are working on it...
