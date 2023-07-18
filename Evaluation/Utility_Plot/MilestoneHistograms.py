@@ -16,18 +16,36 @@ def plotMilestoneHistograms(rootDir,ax,errorName,setName):
 
     errorData = pd.read_csv(rootDir+"/"+setName.replace(" ","")+"Distribution.csv",sep="\t")
 
-    Errors,maxError,minError,maxEpoch = loadHistogramData(errorData,errorName,setName) 
+    Errors,minError,maxError,usableMinError,usableMaxError,maxEpoch = loadHistogramData(errorData,errorName,setName) 
     
     cmap=plt.get_cmap(CMapName,maxEpoch)
+    
+    #little mini view of all the errors
+    insetAx = ax.inset_axes([0.6,0.7,0.35,0.25])
 
     for epoch in sorted(Errors):
-        ax.hist(Errors[epoch],
+        if not epoch == 0:
+            ax.hist(Errors[epoch],
+                    bins=np.linspace(usableMinError,usableMaxError,int(Errors[epoch].size/2.0)),
+                    histtype=u"step",
+                    density=True,
+                    color=cmap(epoch),
+                    #linewidth = 2
+                    )
+        insetAx.hist(Errors[epoch],
                 bins=np.linspace(minError,maxError,int(Errors[epoch].size/2.0)),
                 histtype=u"step",
                 density=True,
                 color=cmap(epoch),
                 #linewidth = 2
                 )
+    #Marking Section in mini plot where huge plot
+    #originated from...
+    oldYLims = insetAx.get_ylim()
+    
+    insetAx.fill_between([usableMinError,usableMaxError],y1=oldYLims[1],y2=oldYLims[0],facecolor = "black",alpha=.2)
+        
+    insetAx.set_ylim(oldYLims)
 
     norm = mpl.colors.Normalize(vmin = 0, vmax = maxEpoch)
     sm = plt.cm.ScalarMappable(cmap=cmap, norm = norm)

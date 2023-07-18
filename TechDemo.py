@@ -7,7 +7,7 @@ from Trainers.SingleInstanceTrainer import Trainer as OnlineTrainer
 from Benchmark import benchmark,initializeDevice
 from Evaluation.QuickOverview import plotOverview
 
-pathToSave = "Tech Demo"
+pathToSave = "Tech Demo Test"
 
 device = initializeDevice()
 Dimensions = 2 # Dataset dimensions

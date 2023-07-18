@@ -30,7 +30,7 @@ This Plot shows how the reconstruction error on the different sets changes with 
 
 <pre><code>
 import matplotlib.pyplot as plt
-from TimeSeriesAEBenchmarkSuite.Evaluation.Utlity_Plot.ErrorPlotter import plotErrors
+from TimeSeriesAEBenchmarkSuite.Evaluation.Utility_Plot.ErrorPlotter import plotErrors
 
 fig,ax = plt.subplots()
 plotErrors(DirOfTheBenchmarkResults,ax,"L1")
@@ -45,10 +45,10 @@ This plot shows how the reconstruction error on the set evolves with the milesto
 
 <pre><code>
 import matplotlib.pyplot as plt
-from TimeSeriesAEBenchmarkSuite.Evaluation.Utlity_Plot.MilesotneHistograms import plotMilestoneHistograms
+from Evaluation.Utility_Plot.MilestoneHistograms import plotMilestoneHistograms
 
 fig,ax = plt.subplots()
-plotMilestoneHistograms(DirOfTheBenchmarkResults,ax,"L1","Training")
+plotMilestoneHistograms(DirOfTheBenchmarkResults,ax,"L1","TrainingSet")
 plt.show()
 </code></pre>
 
@@ -60,7 +60,7 @@ During the benchmark tests with large, small and average reconstruction error ar
 
 <pre><code>
 import matplotlib.pyplot as plt
-from TimeSeriesAEBenchmarkSuite.Evaluation.Utlity_Plot.ExamplePlotter import plotExample
+from TimeSeriesAEBenchmarkSuite.Evaluation.Utility_Plot.ExamplePlotter import plotExample
 
 fig,ax = plt.subplots()
 plotExample(DirOfTheBenchmarkResults,ax,NameOfExample)
@@ -77,7 +77,7 @@ For a logged example, it is also possible to plot the reconstruction error for o
 
 <pre><code>
 import matplotlib.pyplot as plt
-from TimeSeriesAEBenchmarkSuite.Evaluation.Utlity_Plot.ErrorPlotter import plotErrorsAgainstExample
+from TimeSeriesAEBenchmarkSuite.Evaluation.Utility_Plot.ErrorPlotter import plotErrorsAgainstExample
 
 fig,ax = plt.subplots()
 plotErrorsAgainstExample(DirOfTheBenchmarkResults,ax,'L1',NameOfExample,"Training",exampleIndex=26)
@@ -92,7 +92,7 @@ The reconstruction error of a logged example can be plotted into a histogram sho
 
 <pre><code>
 import matplotlib.pyplot as plt
-from TimeSeriesAEBenchmarkSuite.Evaluation.Utlity_Plot.HistogramAndExample import plotExampleLocation
+from TimeSeriesAEBenchmarkSuite.Evaluation.Utility_Plot.HistogramAndExample import plotExampleLocation
 
 fig,ax = plt.subplots()
 plotErrorsAgainstExample(DirOfTheBenchmarkResults,ax,'L1',"Training",exampleIndex=26)
@@ -107,7 +107,7 @@ The data for a logged example and the reconstruction the model creates after dif
 
 <pre><code>
 import matplotlib.pyplot as plt
-from TimeSeriesAEBenchmarkSuite.Evaluation.Utlity_Plot.MilestonePlotter import plotMilstones
+from TimeSeriesAEBenchmarkSuite.Evaluation.Utility_Plot.MilestonePlotter import plotMilstones
 
 fig,ax = plt.subplots()
 plotMilestones(DirOfTheBenchmarkResults,ax,NameOfExample)

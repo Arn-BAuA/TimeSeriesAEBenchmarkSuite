@@ -15,11 +15,11 @@ def plotExampleLocation(rootDir,ax,errorName,setName,exampleIndex):
 
     errorData = pd.read_csv(rootDir+"/"+setName.replace(" ","")+"Distribution.csv",sep="\t")
 
-    Errors,maxError,minError,maxEpoch = loadHistogramData(errorData,errorName,setName) 
+    Errors,minError,maxError,usableMinError,usableMaxError,maxEpoch = loadHistogramData(errorData,errorName,setName) 
     
 
     n,bins,patches = ax.hist(Errors[maxEpoch],
-            bins=np.linspace(minError,maxError,int(Errors[maxEpoch].size/2.0)),
+            bins=np.linspace(usableMinError,usableMaxError,int(Errors[maxEpoch].size/2.0)),
             histtype=u"step",
             #density=True,
             #linewidth = 2,

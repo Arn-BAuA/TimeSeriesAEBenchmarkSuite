@@ -37,9 +37,14 @@ def selectInformativeDimensions(Data,Prediction,maxDimensions):
 def loadHistogramData(errorData,errorName,setName):
 
     Errors = {}
-    
+   
+    # usable min and max error are the errors collected after the first training epochs
+    # min and max error are the errors total...
+    usableMaxError = -1e9
+    usableMinError = 1e9
     maxError = -1e9
     minError = 1e9
+    
     maxEpoch = 0
 
     for column in errorData:
@@ -47,23 +52,27 @@ def loadHistogramData(errorData,errorName,setName):
             #Milestone Extrahieren und als Key...
             Epoch = int(column.split(" ")[1])
             Errors[Epoch] = errorData[column].to_numpy()
-            
+
             if Epoch != 0:
                 localMax = np.max(Errors[Epoch])
-                if localMax > maxError:
-                    maxError = localMax
+                if localMax > usableMaxError:
+                    usableMaxError = localMax
                 localMin = np.min(Errors[Epoch])
-                if localMin < minError:
-                    minError = localMin
+                if localMin < usableMinError:
+                    usableMinError = localMin
+            else:
+                minError = np.min(Errors[Epoch])
+                maxError = np.max(Errors[Epoch])
+
             if Epoch > maxEpoch:
                 maxEpoch = Epoch
     
-    Errors[0] = Errors[0][np.where((Errors[0] >= minError) & (Errors[0]<= maxError))]
-    
-    if len(Errors[0]) == 0:
-        del Errors[0]
+    if usableMaxError > maxError:
+        maxError = usableMaxError
+    if usableMinError < minError:
+        minError = usableMinError
 
-    return Errors,maxError,minError,maxEpoch
+    return Errors,minError,maxError,usableMinError,usableMaxError,maxEpoch
 
 
 ##################

@@ -1,0 +1,185 @@
+{
+    "General Information": {
+        "StreamDimension": 2,
+        "Used Dataset": "Synthetic Sines",
+        "Used Trainer": "SingleInstanceTrainer",
+        "Used Model": "FeedForwardAE",
+        "Number of epochs": 40
+    },
+    "SetWrapper HPs": {
+        "Amplitudes": [
+            [
+                1
+            ],
+            [
+                1
+            ]
+        ],
+        "AmplitudeSpan": [
+            [
+                0.2
+            ],
+            [
+                0.1
+            ]
+        ],
+        "AnomalousAmplitudes": [
+            [
+                1.6
+            ],
+            [
+                1.6
+            ]
+        ],
+        "AnomalousAmplitudeSpan": [
+            [
+                0
+            ],
+            [
+                0
+            ]
+        ],
+        "Frequency": [
+            [
+                0.2
+            ],
+            [
+                0.3
+            ]
+        ],
+        "FrequencySpan": [
+            [
+                0
+            ],
+            [
+                0
+            ]
+        ],
+        "AnomalousFrequency": [
+            [
+                0.5
+            ],
+            [
+                0.5
+            ]
+        ],
+        "AnomalousFrequencySpan": [
+            [
+                0
+            ],
+            [
+                0
+            ]
+        ],
+        "Offset": [
+            [
+                0
+            ],
+            [
+                0
+            ]
+        ],
+        "OffsetSpan": [
+            [
+                0
+            ],
+            [
+                0
+            ]
+        ],
+        "AnomalousOffset": [
+            [
+                0
+            ],
+            [
+                0
+            ]
+        ],
+        "AnomalousOffsetSpan": [
+            [
+                0
+            ],
+            [
+                0
+            ]
+        ],
+        "AnomalyMagnitudeInAmplitude": [
+            [
+                1
+            ],
+            [
+                1
+            ]
+        ],
+        "AnomalyMagnitudeInFrequency": [
+            [
+                0.1
+            ],
+            [
+                0.1
+            ]
+        ],
+        "AnomalyMagnitudeInOffset": [
+            [
+                0.1
+            ],
+            [
+                0.1
+            ]
+        ],
+        "AnomalyInDimension": [
+            [
+                1
+            ],
+            [
+                1
+            ]
+        ],
+        "NoiseLevel": 0.02,
+        "MaxSystemVelocity": 0.01,
+        "SystemChangeRate": 0.01,
+        "AnomaliesInTrainingdata": false,
+        "AnomaliesInValidationdata": true,
+        "ContinousFrequencyBlending": true,
+        "AnomalyThreshold": 0.3,
+        "AnomalyRampTime": 1,
+        "AnomalyDuration": 2,
+        "SampleTime": 0.2,
+        "AnomalyChance": 0.006,
+        "Duration": 2000,
+        "RandomSeed": 1,
+        "TrainingSetSize": 200,
+        "ValidationSetSize": 100,
+        "TestSetSize": 30,
+        "SampleWindowSize": 150
+    },
+    "Model HPs": {
+        "InputSize": 150,
+        "LayerSequence": "[1.   0.55 0.1  0.55 1.  ]",
+        "ActivationFunction": "ReLU",
+        "SlicingBeforeFlatten": true,
+        "SliceLength": 0.1,
+        "LayerSequenceLinear": true,
+        "LatentSpaceSize": 0.1,
+        "NumLayersPerPart": 3
+    },
+    "Trainer HPs": {},
+    "Used Errors": [
+        "L1 Error"
+    ],
+    "Hardware Info": {
+        "UsedComputationDevice": "cuda"
+    },
+    "GITHash": "748c8dbf145f16557d6da9c02751a15aef170f0b",
+    "Selected Examples": {
+        "Training Set Example with High Error ": "[ 64  65 130 167  42]",
+        "Training Set Example with Low Error ": "[ 84 122  41  40  27]",
+        "Training Set Example with Average Error ": "[190 191 169]",
+        "Validation Set Example with High Error ": "[20  4 32 50  2]",
+        "Validation Set Example with Low Error ": "[15 46 76 62 31]",
+        "Validation Set Example with Average Error ": "[52 91 66]",
+        "Test Set Example with High Error ": "[16  1 15  9  3]",
+        "Test Set Example with Low Error ": "[12 23  4 21 19]",
+        "Test Set Example with Average Error ": "[22 20  6]"
+    }
+}
