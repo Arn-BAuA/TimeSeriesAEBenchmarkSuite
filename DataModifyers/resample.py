@@ -4,7 +4,7 @@
 
 import torch
 import numpy as np
-from DataModifyers.utility import apply
+from DataModifyers.utility import applyToDataAndLabels
 
 def resample(newNrOfTimePoints,DataSet,mode="linear"):
     
@@ -22,7 +22,7 @@ def resample(newNrOfTimePoints,DataSet,mode="linear"):
 
         oldPositionIndex = 0
         
-        for i in range(0,len(NewPositions))
+        for i in range(0,len(NewPositions)):
             
             while (not oldPositionIndex == len(LabeledPositions)-2) and (NewPositions[i] > LabeledPositions[oldPositionIndex]):
                 oldPositionIndex += 1
