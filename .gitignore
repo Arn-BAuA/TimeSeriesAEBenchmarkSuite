@@ -2,8 +2,8 @@ data
 models
 plots
 fwVenv
-__pychache__
-*.__pychache__
+__pycache__
+*.__pycache__
 *.pdf
 Results
 *.swp

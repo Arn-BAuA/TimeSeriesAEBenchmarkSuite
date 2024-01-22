@@ -7,7 +7,7 @@ import matplotlib as mpl
 import pandas as pd
 import numpy as np
 
-CMapName = "turbo" #Cmap for the plots.
+CMapName = "autumn" #Cmap for the plots.
 
 def plotMilestoneHistograms(rootDir,ax,errorName,setName):
     

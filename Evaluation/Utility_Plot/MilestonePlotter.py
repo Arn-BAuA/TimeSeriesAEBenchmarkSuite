@@ -112,7 +112,7 @@ def plotMilestones(rootDir,ax,ExampleName,maxDimensions = 4):
     norm = mpl.colors.Normalize(vmin = 0, vmax = maxEpoch)
     sm = plt.cm.ScalarMappable(cmap=cmap, norm = norm)
     sm.set_array([])
-    plt.colorbar(sm,ticks = milestoneEpochs,label="Trained Epochs")
+    plt.colorbar(sm,ticks = milestoneEpochs,ax=ax,label="Trained Epochs")
 
     ax.set_xlabel("Time")
     ax.set_ylabel("Data")
