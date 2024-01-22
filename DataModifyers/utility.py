@@ -25,4 +25,14 @@ def apply(modification,DataSet,newName = ""):
     
     return newBlock
 
+def applyToDataAndLabels(modificationData,modificationLabels,DataSet,newName=""):
+    newDS = apply(modificationData,DataSet,newName)
+
+    if newDS.hasLabels():
+        labels = newDS.Labels()
+        for i in range(0,len(labels)):
+            labels[i] = modificationLabels(labels[i])
+        newDS.setLabels(labels)
+
+    return newDS
 

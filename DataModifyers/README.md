@@ -15,3 +15,10 @@ This modifier takes a data set and adds uniform distributed noise with a level t
 ## smooth.py
 
 This modifier applies a rolling average of a user specified window size to a dataset.
+
+## resample.py
+Takes the input dataset and converts to a diffrent number of points in time. The Dataset consists of points in time with values assigned to them. There are either explicit time stamps for the points or not. If not, it is assumed, that the time series is sampled eqidistant.
+Resample takes the input and converts it to a set of time series, that are sampled equidistant to another grid of time stamps. This is done by interpolation of the time series. At the moment, the only supported way to interpolate is linear interpolation.
+This is basically a wrapper for Torch.NN.Functional.Interpolate.
+Not equidistant points with explicit time stamps are not supported at the moment!
+
